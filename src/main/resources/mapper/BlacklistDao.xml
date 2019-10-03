@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.bbs.dao.BlacklistDao">
+
+    <resultMap type="com.example.bbs.entity.Blacklist" id="TBlacklistMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="permission" column="permission" jdbcType="INTEGER"/>
+    </resultMap>
+
+
+    <!--根据用户id查询-->
+    <select id="selectListUserId" resultMap="TBlacklistMap">
+        select
+        id, user_id, permission
+        from bbs.t_blacklist
+        where user_id=#{id}
+    </select>
+
+    <!--添加黑名单-->
+    <insert id="addBlackList" keyProperty="id" useGeneratedKeys="true">
+        insert into bbs.t_blacklist(user_id, permission)
+        values (#{userId}, #{permission})
+    </insert>
+
+
+    <!--通过主键删除-->
+    <delete id="deleteBlcakListById">
+        delete from bbs.t_blacklist where id = #{id}
+    </delete>
+
+    <select id="selectListByUserIdAndPermission" resultMap="TBlacklistMap">
+        select * from t_blacklist where user_id=#{userId} and permission=#{permission}
+    </select>
+</mapper>

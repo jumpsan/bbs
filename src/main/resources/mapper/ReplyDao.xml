@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.bbs.dao.ReplyDao">
+
+    <resultMap type="com.example.bbs.entity.Reply" id="TReplyMap">
+        <result property="replyTime" column="reply_time" jdbcType="TIMESTAMP"/>
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="postId" column="post_id" jdbcType="INTEGER"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <!--根据回复id查询-->
+    <select id="selectReplyById" resultMap="TReplyMap">
+        select
+        reply_time, id, user_id, post_id, content
+        from bbs.t_reply
+        where id=#{id}
+    </select>
+
+    <!--根据帖子id查询-->
+    <select id="selectReplyByPostId" resultMap="TReplyMap">
+        select
+        reply_time, id, user_id, post_id, content
+        from bbs.t_reply
+        where post_id=#{id}
+        limit #{start}, #{num}
+    </select>
+
+    <!--根据用户id查询-->
+    <select id="selectReplyByUserId" resultMap="TReplyMap">
+        select
+        reply_time, id, user_id, post_id, content
+        from bbs.t_reply
+        where user_id=#{id}
+        limit #{start}, #{num}
+    </select>
+
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="TReplyMap">
+        select
+        reply_time, id, user_id, post_id, content
+        from bbs.t_reply
+        <where>
+            <if test="replyTime != null">
+                and reply_time = #{replyTime}
+            </if>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="userId != null">
+                and user_id = #{userId}
+            </if>
+            <if test="postId != null">
+                and post_id = #{postId}
+            </if>
+            <if test="content != null and content != ''">
+                and content = #{content}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="addReply" keyProperty="id" useGeneratedKeys="true">
+        insert into bbs.t_reply( user_id, post_id, content)
+        values ( #{userId}, #{postId}, #{content})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="updateReply">
+        update bbs.t_reply
+        <set>
+            <if test="content != null and content != ''">
+                content = #{content},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deleteReplyById">
+        delete from bbs.t_reply where id = #{id}
+    </delete>
+
+    <!--根据板块Id删除-->
+    <delete id="deleteReplyByPlateId">
+        delete from t_reply where post_id in
+            (select id from t_post where section_id in
+                (select id from t_section where plate_id=#{id}))
+    </delete>
+    <!-- 根据分区id删除   -->
+    <delete id="deleteReplyBySectionId">
+        delete from t_reply where post_id in
+            (select id from t_post where section_id=#{id})
+    </delete>
+
+    <!--根据一个帖子删除-->
+    <delete id="deleteReplyByPostId">
+        delete from t_reply where post_id=#{id}
+    </delete>
+
+    <!--根据创建帖子用户的id删除相关帖子的回复-->
+    <delete id="deleteReplyByPostUserId">
+        delete from t_reply where post_id in
+            (select id from t_post where t_post.user_id=#{id})
+    </delete>
+    <!--根据用户id删除-->
+    <delete id="deleteReplyByUserId">
+        delete from t_reply where user_id=#{id}
+    </delete>
+
+    <!--根据帖子类型删除-->
+    <delete id="deleteReplyByPostType">
+        delete from t_reply where post_id in
+            (select id from t_post where type=#{type})
+    </delete>
+
+    <!--查询某个帖子下所有的回复总数-->
+    <select id="selectAllReplyCountByPostId" resultType="Integer">
+        select count(*) from t_reply where post_id=#{id}
+    </select>
+
+    <!--查询某个用户的所有回复数-->
+    <select id="selectAllReplyCountByUserId" resultType="Integer">
+        select count(*) from t_reply where user_id=#{id}
+    </select>
+</mapper>

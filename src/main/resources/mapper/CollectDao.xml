@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.bbs.dao.CollectDao">
+
+
+    <!--查看某个用户收藏列表-->
+    <select id="selectCollectPostByUserId" resultType="post">
+        select * from t_post where id in
+        (select post_id from t_collect where user_id=#{id})
+        limit #{start},#{num}
+    </select>
+
+    <!--查看收藏某个帖子的用户-->
+    <select id="selectCollectUserByPostId" resultType="User">
+        select * from t_user
+        where id in
+        (select user_id from t_collect where post_id=#{id})
+        limit #{start}, #{num}
+    </select>
+
+    <!--添加收藏-->
+    <insert id="addCollect" keyProperty="Id" useGeneratedKeys="true">
+        insert into t_collect(user_id, post_id)
+        values (#{user_id},#{post_id})
+    </insert>
+
+
+    <!--删除特定收藏-->
+    <delete id="deleteCollect">
+        delete from t_collect where id=#{id}
+    </delete>
+
+    <!--删除某个用户的所有收藏 -->
+    <delete id="deleteCollectByUserId">
+        delete from t_collect where user_id=#{id}
+    </delete>
+
+    <!-- 删除某个帖子的所有收藏者-->
+    <delete id="deleteAllCollectByPostId">
+        delete from t_collect where post_id=#{id}
+    </delete>
+    <!--根据一堆帖子删除-->
+    <delete id="deleteAllCollectByPostIds">
+        delete from t_collect where post_id in #{ids}
+    </delete>
+    <!--根据板块id删除-->
+    <delete id="deleteAllCollectByPlateId">
+        delete from t_collect where post_id in
+            (select id from t_post where section_id in
+                (select id from t_section where plate_id=#{id}))
+    </delete>
+
+    <!--通过分区id删除-->
+    <delete id="deleteAllCollectBySectionId">
+        delete from t_collect where post_id in
+            (select id from t_post where section_id=#{id})
+    </delete>
+
+    <!--根据帖子类型删除-->
+    <delete id="deleteAllCollectByPostType">
+        delete from t_collect where post_id in
+            (select id from t_post where type=#{type})
+    </delete>
+
+    <!--根据用户id删除其帖子的收藏-->
+    <delete id="deleteAllCollectByPostUserId">
+        delete from t_collect where post_id in
+            (select id from t_post where t_post.user_id=#{id})
+    </delete>
+
+    <!--查询一个用户收藏的所有帖子数量-->
+    <select id="selectAllCollectCountByUserId" resultType="Integer">
+        select count(*) from t_collect where user_id=#{id}
+    </select>
+
+    <!--某个帖子的所有收藏者数量-->
+    <select id="selectAllCollectCountByPostId" resultType="Integer">
+        select count(*) from t_collect where post_id=#{id}
+    </select>
+</mapper>

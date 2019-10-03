@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.bbs.dao.RoleDao">
+
+    <resultMap type="com.example.bbs.entity.Role" id="TRoleMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="plateId" column="plate_id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--根据板块id查询-->
+    <select id="selectRoleByPlateId" resultMap="TRoleMap">
+        select
+        id, plate_id, user_id
+        from bbs.t_role
+        where plate_id = #{id}
+    </select>
+
+    <!--根据用户id查询-->
+    <select id="selectRoleByUserId" resultMap="TRoleMap">
+        select
+        id, plate_id, user_id
+        from bbs.t_role
+        where user_id = #{id}
+    </select>
+
+    <!--根据用户id和板块id查询-->
+    <select id="selectRoleByUserIdAndPlateId" resultMap="TRoleMap">
+        select
+        id, plate_id, user_id
+        from bbs.t_role
+        where user_id=${user_id} and plate_id=#{plate_id}
+    </select>
+
+    <!--通过实体作为筛选条件查询-->
+    <select id="queryAll" resultMap="TRoleMap">
+        select
+        id, plate_id, user_id
+        from bbs.t_role
+        <where>
+            <if test="id != null">
+                and id = #{id}
+            </if>
+            <if test="plateId != null">
+                and plate_id = #{plateId}
+            </if>
+            <if test="userId != null">
+                and user_id = #{userId}
+            </if>
+        </where>
+    </select>
+
+    <!--新增所有列-->
+    <insert id="addRole" keyProperty="id" useGeneratedKeys="true">
+        insert into bbs.t_role(plate_id, user_id)
+        values (#{plateId}, #{userId})
+    </insert>
+
+    <!--通过主键删除-->
+    <delete id="deleteRoleById">
+        delete from bbs.t_role where id = #{id}
+    </delete>
+
+    <!--通过板块id删除-->
+    <delete id="deleteRoleByPlateId">
+        delete from bbs.t_role where plate_id = #{id}
+    </delete>
+
+    <!--通过用户id删除-->
+    <delete id="deleteRoleByUserId">
+        delete from bbs.t_role where user_id = #{id}
+    </delete>
+
+</mapper>

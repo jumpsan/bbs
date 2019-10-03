@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.bbs.dao.PlateDao">
+
+    <resultMap type="com.example.bbs.entity.Plate" id="TPlateMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="name" column="name" jdbcType="VARCHAR"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+        <result property="describes" column="describes" jdbcType="VARCHAR"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询所有版块-->
+    <select id="selectPlate" resultMap="TPlateMap">
+        select
+        id, name, user_id, create_time,describes,status
+        from t_plate
+        limit #{start},#{num}
+    </select>
+
+    <select id="selectAllPlate" resultType="Integer">
+        select COUNT(*) from t_plate
+    </select>
+
+    <select id="selectPlateByName" resultMap="TPlateMap">
+        select
+        id, name, user_id, create_time,describes,status
+        from t_plate
+        where name like concat('%',#{name},'%')
+    </select>
+
+    <!--根据主键查询-->
+    <select id="selectPlateById" resultMap="TPlateMap">
+        select id, name, user_id, create_time,describes,status
+        from t_plate
+        where id=#{id}
+    </select>
+
+    <!--新增版块-->
+    <insert id="addPlate" keyProperty="id" useGeneratedKeys="true">
+        insert into t_plate(name, user_id,describes)
+        values (#{name}, #{userId},#{describes})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="updatePlate">
+        update t_plate
+        <set>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="userId != null">
+                user_id = #{userId},
+            </if>
+            <if test="createTime != null">
+                create_time = #{createTime},
+            </if>
+            <if test="describes != null">
+                describes= #{describes},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deletePlate">
+        delete from t_plate where id = #{id}
+    </delete>
+
+
+</mapper>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.bbs.dao.ApproveDao">
+
+    <resultMap type="com.example.bbs.entity.Approve" id="TApproveMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="time" column="time" jdbcType="TIMESTAMP"/>
+        <result property="postId" column="post_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--根据帖子Id查找-->
+    <select id="selectApproveByPostId" resultMap="TApproveMap">
+        select
+        id, user_id, time, post_id
+        from bbs.t_approve
+        where post_id = #{id}
+    </select>
+
+    <!--添加点赞记录-->
+    <insert id="addApprove" keyProperty="id" useGeneratedKeys="true">
+        insert into bbs.t_approve(user_id, time, post_id)
+        values (#{userId}, #{time}, #{postId})
+    </insert>
+
+
+    <!--根据主键删除点赞记录-->
+    <delete id="deleteApprove">
+        delete from bbs.t_approve where id = #{id}
+    </delete>
+
+    <!-- 根据板块id删除   -->
+    <delete id="deleteApproveByPlateId">
+        delete from t_approve where post_id in
+            (select id from t_post where section_id in
+                (select  id from t_section where plate_id=#{id}))
+    </delete>
+
+    <!-- 根据分区id删除 -->
+    <delete id="deleteApproveBySectionId">
+        delete from t_approve where post_id in
+            (select id from t_post where section_id=#{id})
+    </delete>
+
+    <!--根据帖子删除-->
+    <delete id="deleteApproveByPostId">
+        delete from t_approve where post_id =#{id}
+    </delete>
+    <!--根据用户id删除其帖子下的所有赞记录-->
+    <delete id="deleteApproveByPostUserId">
+        delete from t_approve where post_id in
+            (select id from t_post where t_post.user_id=#{id})
+    </delete>
+    <!--根据用户id删除-->
+    <delete id="deleteApproveByUserId">
+        delete from t_approve where user_id=#{id}
+    </delete>
+
+    <!--根据帖子类型删除-->
+    <delete id="deleteApproveByPostType">
+        delete from t_approve where post_id in
+            (select id from t_post where type=#{type})
+    </delete>
+</mapper>

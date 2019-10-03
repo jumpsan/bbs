@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.bbs.dao.FollowDao">
+
+    <resultMap type="com.example.bbs.entity.Follow" id="TFollowedMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="followId" column="follow_id" jdbcType="INTEGER"/>
+        <result property="followedId" column="followed_id" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询关注列表-->
+    <select id="selectByFollowId" resultType="User">
+        select
+        *
+        from t_user
+        where id in
+        (select followed_id from t_follow where follow_id=#{follow_id})
+        limit #{start},#{num}
+    </select>
+
+    <!--查询粉丝列表-->
+    <select id="selectByFollowedId" resultType="User">
+        select
+        *
+        from t_user where id in
+        (select follow_id from t_follow where followed_id=#{followed_id})
+        limit #{start}, #{num}
+    </select>
+
+
+    <!--新增关注-->
+    <insert id="addFollow" keyProperty="id" useGeneratedKeys="true">
+        insert into bbs.t_follow(follow_id, followed_id)
+        values (#{follow_id}, #{followed_id})
+    </insert>
+
+
+    <!--通过主键删除-->
+    <delete id="deleteFollow">
+        delete from bbs.t_follow where followed_id=#{followedId} and follow_id=#{followId}
+    </delete>
+
+    <!--根据关注者id删除 -->
+    <delete id="deleteByFollowId">
+        delete from t_follow where follow_id=#{follow_id}
+    </delete>
+    <!--根据被关注者id删除-->
+    <delete id="deleteByFollowedId">
+        delete from t_follow where followed_id=#{followed_id}
+    </delete>
+
+</mapper>

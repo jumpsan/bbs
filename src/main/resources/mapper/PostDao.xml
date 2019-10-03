@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.bbs.dao.PostDao">
+
+    <resultMap type="com.example.bbs.entity.Post" id="TPostMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="titile" column="titile" jdbcType="VARCHAR"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="sectionId" column="section_id" jdbcType="INTEGER"/>
+        <result property="replyNum" column="reply_num" jdbcType="INTEGER"/>
+        <result property="viewNum" column="view_num" jdbcType="INTEGER"/>
+        <result property="approveNum" column="approve_num" jdbcType="INTEGER"/>
+        <result property="collectNum" column="collect_num" jdbcType="INTEGER"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="postTime" column="post_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="image" column="image" jdbcType="VARCHAR"/>
+        <result property="video" column="video" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <!--查询单个-->
+    <select id="selectPostById" resultMap="TPostMap">
+        select
+        id, titile, user_id, section_id, reply_num, view_num, approve_num, collect_num, content, post_time, update_time,
+        image, video, type, status
+        from bbs.t_post
+        where id = #{id}
+    </select>
+
+    <!--查询分区帖子数据-->
+    <select id="selectPostBySectionId" resultMap="TPostMap">
+        select
+        id, titile, user_id, section_id, reply_num, view_num, approve_num, collect_num, content, post_time, update_time,
+        image, video, type, status
+        from bbs.t_post where section_id=#{id}
+        limit #{start}, #{num}
+    </select>
+
+
+    <!--根据用户id查询帖子-->
+    <select id="selectPostByUserId" resultMap="TPostMap">
+        select
+        id, titile, user_id, section_id, reply_num, view_num, approve_num, collect_num, content, post_time, update_time,
+        image, video, type, status
+        from bbs.t_post where section_id=#{id}
+        limit #{start}, #{num}
+    </select>
+
+    <!--根据类型查询帖子-->
+    <select id="selectPostByType" resultMap="TPostMap">
+        select
+        id, titile, user_id, section_id, reply_num, view_num, approve_num, collect_num, content, post_time, update_time,
+        image, video, type, status
+        from bbs.t_post where section_id=#{type}
+        limit #{start}, #{num}
+    </select>
+
+    <!--根据标题模糊查询-->
+    <select id="" resultMap="TPostMap">
+        select id, titile, user_id, section_id, reply_num, view_num, approve_num, collect_num, content, post_time,
+        update_time, image, video, type, status
+        from t_post
+        where titile like concat('%',#{title},'%')
+
+    </select>
+    <!--  分区下的所有帖子数量  -->
+    <select id="selectAllPostCountBySectionId" resultType="Integer">
+        select count(*) from t_post where section_id=#{id}
+    </select>
+
+    <!-- 用户的所有帖子   -->
+    <select id="selectAllPostCountByUserId" resultType="Integer">
+        select count(*) from t_post where user_id=#{id}
+    </select>
+
+    <!--类型的所有帖子-->
+    <select id="selectAllPostCountByType" resultType="Integer">
+        select count(*) from t_post where type=#{type}
+    </select>
+
+    <!--标题模糊得到的总数-->
+    <select id="selectAllPostCountByTitle" resultType="Integer">
+        select count(*) from t_post where titile like concat('%',#{title},'%')
+    </select>
+
+    <!--通过用户id查询其所有帖子id-->
+    <select id="selectAllPostByUserId" resultType="Integer">
+        select id from t_post where user_id=#{id}
+    </select>
+
+
+
+    <!--图片新增列-->
+    <insert id="addImagePost" keyProperty="id" useGeneratedKeys="true">
+        insert into bbs.t_post(titile, user_id,image, section_id,  content,type)
+        values (#{titile}, #{userId}, #{image}, #{sectionId},#{content},
+         #{type})
+    </insert>
+
+    <!--文字新增列-->
+    <insert id="addWordPost" keyProperty="id" useGeneratedKeys="true">
+        insert into bbs.t_post(titile, user_id, section_id,  content,type)
+        values (#{titile}, #{userId}, #{sectionId},#{content},
+         #{type})
+    </insert>
+
+    <!--视频-->
+    <insert id="addVideoPost" keyProperty="id" useGeneratedKeys="true">
+        insert into bbs.t_post(titile, user_id, section_id, video ,content,type)
+        values (#{titile}, #{userId}, #{sectionId},#{video},#{content},
+         #{type})
+    </insert>
+
+    <!--通过主键修改数据-->
+    <update id="updatePost">
+        update bbs.t_post
+        <set>
+            <if test="titile != null and titile != ''">
+                titile = #{titile},
+            </if>
+
+            <if test="content != null and content != ''">
+                content = #{content},
+            </if>
+            <if test="viewNum !=null">
+                view_num=#{viewNum},
+            </if>
+            <if test="approveNum !=null">
+                approve_num=#{approveNum},
+            </if>
+            <if test="collectNum !=null">
+                collect_num=#{collectNum},
+            </if>
+            <if test="replyNum !=null">
+                reply_num=#{replyNum},
+            </if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <!--通过主键删除-->
+    <delete id="deletePostById">
+        delete from bbs.t_post where id = #{id}
+    </delete>
+
+    <!--根据用户id删除-->
+    <delete id="deletePostByUserId">
+        delete from t_post where user_id=#{id}
+    </delete>
+
+    <!--根据分区id删除-->
+    <delete id="deletePostBySectionId">
+        delete from t_post where section_id=#{id}
+    </delete>
+
+    <!--根据类型删除-->
+    <delete id="deletePostByType">
+        delete from t_post where type=#{type}
+    </delete>
+
+    <!--根据板块id删除-->
+    <delete id="deletePostByPlateId">
+        delete from t_post where section_id in
+            (select id from t_section where plate_id=#{id})
+    </delete>
+
+</mapper>
