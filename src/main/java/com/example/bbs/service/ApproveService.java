@@ -1,6 +1,7 @@
 package com.example.bbs.service;
 
 import com.example.bbs.entity.Approve;
+import com.example.bbs.entity.Post;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public interface ApproveService {
      * @param id 帖子id
      * @return 点赞列表
      */
-    List<Approve> selectApproveByPostId(Integer id);
+    Integer selectApproveCountByPostId(Integer id);
 
     /**
      * 添加点赞记录
@@ -28,7 +29,7 @@ public interface ApproveService {
      * @param approve 点赞信息
      * @return 主键值
      */
-    Approve addApprove(Approve approve);
+    Integer addApprove(Approve approve);
 
     /**
      * 删除点赞记录
@@ -36,5 +37,29 @@ public interface ApproveService {
      * @param id 点赞id
      * @return 结果
      */
-    boolean deleteApprove(Integer id);
+    Integer deleteApprove(Integer id);
+
+    Approve selectApproveById(Integer id);
+
+    /**
+     * 通过用户编号和帖子编号删除
+     * @param id 用户编号
+     * @param postId 帖子编号
+     * @return 结果
+     */
+    Integer deleteApproveByUserIdAndPostId(Integer id, Integer postId);
+
+    /**
+     * 根据用户编号，查看点赞过的帖子
+     * @param userId
+     * @return
+     */
+    List<Post> selectApprovedPostByUserId(Integer userId,Integer start,Integer size);
+
+    /**
+     * 根据用户编号，查看点赞过的帖子 总条数
+     * @param userId
+     * @return
+     */
+    Integer selectApprovedPostCountByUserId(Integer userId);
 }

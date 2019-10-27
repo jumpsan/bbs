@@ -1,11 +1,15 @@
 package com.example.bbs.service.impl;
 
+import com.example.bbs.dao.*;
+import com.example.bbs.entity.Information;
+import com.example.bbs.entity.Post;
 import com.example.bbs.entity.User;
-import com.example.bbs.dao.UserDao;
 import com.example.bbs.service.UserService;
+import com.example.bbs.utils.UploadUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * (TUser)表服务实现类
@@ -17,6 +21,22 @@ import javax.annotation.Resource;
 public class UserServiceImpl implements UserService {
     @Resource
     private UserDao userDao;
+    @Resource
+    private PostDao postDao;
+    @Resource
+    private ApproveDao approveDao;
+    @Resource
+    private BlacklistDao blacklistDao;
+    @Resource
+    private CollectDao collectDao;
+    @Resource
+    private FollowDao followDao;
+    @Resource
+    private MessageDao messageDao;
+    @Resource
+    private ReplyDao replyDao;
+    @Resource
+    private RoleDao roleDao;
 
     /**
      * 通过账号选择用户
@@ -32,13 +52,13 @@ public class UserServiceImpl implements UserService {
     /**
      * 通过账号和密码查找
      *
-     * @param id       账号
+     * @param username 用户名
      * @param password 密码
      * @return 用户
      */
     @Override
-    public User selectUserByIdAndPassword(Integer id, String password) {
-        return userDao.selectUserByIdAndPassword(id, password);
+    public User selectUserByNameAndPassword(String username, String password) {
+        return userDao.selectUserByNameAndPassword(username, password);
     }
 
     /**
@@ -49,7 +69,15 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public Integer addUser(User user) {
-        return userDao.addUser(user);
+        //用户名不能重复
+        User checkUser = userDao.selectUserByName(user.getUsername());
+        if(checkUser==null){
+            userDao.addUser(user);
+            return user.getId();
+        }else{
+            return -2;//名称重复
+        }
+
     }
 
     /**
@@ -59,8 +87,20 @@ public class UserServiceImpl implements UserService {
      * @return 结果
      */
     @Override
-    public boolean deleteUserById(Integer id) {
-        return userDao.deleteUserById(id) > 0;
+    public Integer deleteUserById(Integer id) {
+        User user = userDao.selectUserById(id);
+        postDao.deletePostByUserId(id);
+        approveDao.deleteApproveByUserId(id);
+        collectDao.deleteCollectByUserId(id);
+        replyDao.deleteReplyByUserId(id);
+        messageDao.deleteMessageByUserId(id);
+        blacklistDao.deleteBlackListByUserId(id);
+        followDao.deleteFollowByUserId(id);
+        roleDao.deleteRoleByUserId(id);
+        if(user.getImage()!=null){
+            UploadUtils.deleteFile(user.getImage());
+        }
+        return userDao.deleteUserById(id);
     }
 
     /**
@@ -70,8 +110,30 @@ public class UserServiceImpl implements UserService {
      * @return 结果
      */
     @Override
-    public boolean updateUserById(User user) {
-        return userDao.updateUserById(user) > 0;
+    public Integer updateUserById(User user) {
+        User checkUser = userDao.selectUserById(user.getId());
+        if(checkUser.getImage()!=null){
+            UploadUtils.deleteFile(checkUser.getImage());
+        }
+        if(!checkUser.getUsername().equals(user.getUsername())){
+            //检查用户名重复
+            User  checkName = userDao.selectUserByName(user.getUsername());
+            if(checkName!=null){
+                return -2;//用户名重复
+            }
+        }
+        return userDao.updateUserById(user);
+    }
+
+    @Override
+    public Integer selectAllUserCount() {
+        return userDao.selectAllUserCount();
+
+    }
+
+    @Override
+    public List<User> selectAllUser(Integer start, Integer size) {
+        return userDao.selectAllUser(start,size);
     }
 
 

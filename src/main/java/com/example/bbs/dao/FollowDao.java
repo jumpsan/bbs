@@ -17,11 +17,31 @@ public interface FollowDao {
 
     List<User> selectByFollowedId(Integer followed_id, Integer start, Integer num);
 
-    Follow addFollow(Follow followed);
+    Integer addFollow(Follow follow);
 
-    Integer deleteFollow(Follow followed);
+    Integer deleteFollow(Follow follow);
 
-    Integer deleteByFollowId(Integer follow_id);
+    Integer deleteByFollowId(Integer followId);
 
     Integer deleteByFollowedId(Integer followed_id);
+
+    Integer selectAllCountByFollowId(Integer id);
+
+    Integer selectAllCountByFollowedId(Integer id);
+
+    Follow selectAllCountByFollowIdAndFollowedId(Integer followId, Integer followedId);
+
+    /**
+     * 根据用户编号删除
+     * @param id
+     * @return
+     */
+    Integer deleteFollowByUserId(Integer id);
+
+    /**
+     * 根据编号查询
+     * @param id
+     * @return
+     */
+    Follow selectById(Integer id);
 }

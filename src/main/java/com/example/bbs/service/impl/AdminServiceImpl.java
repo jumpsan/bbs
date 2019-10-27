@@ -13,7 +13,7 @@ import javax.annotation.Resource;
  * @author makejava
  * @since 2019-09-22 13:37:51
  */
-@Service("tAdminService")
+@Service("AdminService")
 public class AdminServiceImpl implements AdminService {
     @Resource
     private AdminDao adminDao;
@@ -49,18 +49,50 @@ public class AdminServiceImpl implements AdminService {
      * @return 账号
      */
     @Override
-    public Admin addAdmin(Admin admin) {
+    public Integer addAdmin(Admin admin) {
+        Admin checkAdmin = adminDao.selectAdminByName(admin.getName());
+        if(checkAdmin!=null){
+            //名称重复
+            return -2;
+        }
         return adminDao.addAdmin(admin);
     }
 
     /**
-     * 根据账号删除管理员
-     *
-     * @param id 账号
-     * @return 结果
+     * 根据名称删除
+     * @param name 名称
+     * @return 删除条数
      */
     @Override
-    public boolean deleteAdminById(Integer id) {
-        return adminDao.deleteAdminById(id) > 0;
+    public Integer deleteAdminByName(String name) {
+        return adminDao.deleteAdminByName(name);
     }
+
+    /**
+     * 根据名字查找
+     *
+     * @param name 名称
+     * @return 管理员信息
+     */
+    @Override
+    public Admin selectAdminByName(String name) {
+        return adminDao.selectAdminByName(name);
+    }
+
+    @Override
+    public Integer deleteAdminById(Integer id) {
+        return adminDao.deleteAdminById(id);
+    }
+
+    //废弃
+//    /**
+//     * 根据账号删除管理员
+//     *
+//     * @param id 账号
+//     * @return 结果
+//     */
+//    @Override
+//    public boolean deleteAdminById(Integer id) {
+//        return adminDao.deleteAdminById(id) > 0;
+//    }
 }

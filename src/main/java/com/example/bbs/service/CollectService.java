@@ -24,10 +24,11 @@ public interface CollectService {
 
     Integer deleteCollect(Integer id);
 
-    Integer deleteCollectByUserId(Integer id);
-
-
     Integer selectAllCollectCountByUserId(Integer id);
 
     Integer selectAllCollectCountByPostId(Integer id);
+
+    Collect selectCollectById(Integer id);
+
+    Integer deleteCollectByUserIdAndPostId(Integer userId, Integer postId);
 }

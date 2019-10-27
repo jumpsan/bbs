@@ -1,6 +1,8 @@
 package com.example.bbs.service;
 
+import com.example.bbs.entity.Plate;
 import com.example.bbs.entity.Role;
+import com.example.bbs.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -20,7 +22,7 @@ public interface RoleService {
      * @param id 板块id
      * @return 版主列表
      */
-    List<Role> selectRoleByPlateId(Integer id);
+    List<User> selectRoleByPlateId(Integer id);
 
     /**
      * 根据用户id查询
@@ -28,7 +30,7 @@ public interface RoleService {
      * @param id 用户id
      * @return 结果
      */
-    List<Role> selectRoleByUserId(Integer id);
+    List<Plate> selectRoleByUserId(Integer id);
 
     /**
      * 添加版主
@@ -36,7 +38,7 @@ public interface RoleService {
      * @param role 版主信息
      * @return 主键值
      */
-    Role addRole(Role role);
+    Integer addRole(Role role);
 
     /**
      * 根据版主id删除
@@ -62,12 +64,13 @@ public interface RoleService {
      */
     Integer deleteRoleByUserId(Integer id);
 
+
+    Integer deleteRoleByPlateIdAndUserId(Integer plateId, Integer userId);
+
     /**
-     * 根据用户id和版块id
-     *
-     * @param user_id  用户id
-     * @param plate_id 版块id
-     * @return 结果
+     * 查找版主
+     * @param id
+     * @return
      */
-    Role selectRoleByUserIdAndPlateId(Integer user_id, Integer plate_id);
+    Role selectRoleById(Integer id);
 }

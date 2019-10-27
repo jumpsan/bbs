@@ -3,8 +3,8 @@
 <mapper namespace="com.example.bbs.dao.PostDao">
 
     <resultMap type="com.example.bbs.entity.Post" id="TPostMap">
-        <result property="id" column="id" jdbcType="INTEGER"/>
-        <result property="titile" column="titile" jdbcType="VARCHAR"/>
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
         <result property="userId" column="user_id" jdbcType="INTEGER"/>
         <result property="sectionId" column="section_id" jdbcType="INTEGER"/>
         <result property="replyNum" column="reply_num" jdbcType="INTEGER"/>
@@ -14,27 +14,38 @@
         <result property="content" column="content" jdbcType="VARCHAR"/>
         <result property="postTime" column="post_time" jdbcType="TIMESTAMP"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-        <result property="image" column="image" jdbcType="VARCHAR"/>
         <result property="video" column="video" jdbcType="VARCHAR"/>
         <result property="type" column="type" jdbcType="INTEGER"/>
         <result property="status" column="status" jdbcType="INTEGER"/>
+        <collection property="images" ofType="java.lang.String">
+            <constructor>
+                <arg column="image"/>
+            </constructor>
+        </collection>
     </resultMap>
 
     <!--查询单个-->
     <select id="selectPostById" resultMap="TPostMap">
         select
-        id, titile, user_id, section_id, reply_num, view_num, approve_num, collect_num, content, post_time, update_time,
-        image, video, type, status
-        from bbs.t_post
-        where id = #{id}
+        t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where t_post.id = #{id}
+
+    </select>
+
+    <select id="selectPostByIdForUser" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where  t_post.id = #{id}  and status!=3
     </select>
 
     <!--查询分区帖子数据-->
     <select id="selectPostBySectionId" resultMap="TPostMap">
         select
-        id, titile, user_id, section_id, reply_num, view_num, approve_num, collect_num, content, post_time, update_time,
-        image, video, type, status
-        from bbs.t_post where section_id=#{id}
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where section_id=#{id} and status!=3
         limit #{start}, #{num}
     </select>
 
@@ -42,85 +53,174 @@
     <!--根据用户id查询帖子-->
     <select id="selectPostByUserId" resultMap="TPostMap">
         select
-        id, titile, user_id, section_id, reply_num, view_num, approve_num, collect_num, content, post_time, update_time,
-        image, video, type, status
-        from bbs.t_post where section_id=#{id}
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where user_id=#{id} and status!=3
         limit #{start}, #{num}
     </select>
 
     <!--根据类型查询帖子-->
     <select id="selectPostByType" resultMap="TPostMap">
         select
-        id, titile, user_id, section_id, reply_num, view_num, approve_num, collect_num, content, post_time, update_time,
-        image, video, type, status
-        from bbs.t_post where section_id=#{type}
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where type=#{type} and status!=3
         limit #{start}, #{num}
     </select>
 
     <!--根据标题模糊查询-->
-    <select id="" resultMap="TPostMap">
-        select id, titile, user_id, section_id, reply_num, view_num, approve_num, collect_num, content, post_time,
-        update_time, image, video, type, status
-        from t_post
-        where titile like concat('%',#{title},'%')
+    <select id="selectPostByTitle" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where title like concat('%',#{title},'%') and status!=3
 
     </select>
     <!--  分区下的所有帖子数量  -->
     <select id="selectAllPostCountBySectionId" resultType="Integer">
-        select count(*) from t_post where section_id=#{id}
+        select count(*) from t_post where section_id=#{id} and status!=3
     </select>
 
     <!-- 用户的所有帖子   -->
     <select id="selectAllPostCountByUserId" resultType="Integer">
-        select count(*) from t_post where user_id=#{id}
+        select count(*) from t_post where user_id=#{id}  and status!=3
     </select>
 
     <!--类型的所有帖子-->
     <select id="selectAllPostCountByType" resultType="Integer">
-        select count(*) from t_post where type=#{type}
+        select count(*) from t_post where type=#{type} and status!=3
     </select>
 
     <!--标题模糊得到的总数-->
     <select id="selectAllPostCountByTitle" resultType="Integer">
-        select count(*) from t_post where titile like concat('%',#{title},'%')
+        select count(*) from t_post where title like concat('%',#{title},'%') and status!=3
     </select>
 
-    <!--通过用户id查询其所有帖子id-->
-    <select id="selectAllPostByUserId" resultType="Integer">
-        select id from t_post where user_id=#{id}
+    <!--分区需要审核的帖子-->
+    <select id="selectUncheckPostBySectionId" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where section_id=#{sectionId} and status=3
+        limit #{start},#{size}
+    </select>
+    <!--分区需要审核的帖子数量-->
+    <select id="selectUncheckPostCountBySectionId" resultType="Integer">
+        select count(*) from t_post where section_id=#{sectionId} and status=3
+    </select>
+
+    <!--添加帖子-->
+    <insert id="addPost" keyProperty="id" useGeneratedKeys="true">
+        insert into bbs.t_post(title, user_id, section_id,plate_id,  content, video, type, status)
+        values (#{title}, #{userId},  #{sectionId},#{plateId},#{content},#{video},#{type},#{status})
+    </insert>
+
+    <!--查找置顶帖子-->
+    <select id="selectTopPostByPlateId" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where plate_id=#{plateId} and status=1
+    </select>
+
+    <!--查找公告帖子-->
+    <select id="selectAnnouncedPostByPlateId" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where plate_id=#{plateId} and status=2
+    </select>
+
+    <!--查找一个板块下的帖子数量-->
+    <select id="selectPostCountByPlateId" resultType="Integer">
+        select count(*) from t_post where status!=3 and section_id in
+                                          (select id from t_section where t_section.plate_id=#{plateId})
+    </select>
+
+    <!--板块根据最新更新时间查找一个板块下帖子-->
+    <select id="selectPostInPlateByUpdateTime" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where status!=3  and  section_id in (select id from t_section where t_section.plate_id=#{plateId})
+        order by update_time DESC
+        limit #{start},#{size}
+    </select>
+    <!--板块根据发布时间降序查找-->
+    <select id="selectPostInPlateBySendTime" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where status!=3   and  section_id in (select id from t_section where t_section.plate_id=#{plateId})
+        order by post_time DESC
+        limit #{start},#{size}
+    </select>
+
+    <!--板块根据热度查找-->
+    <select id="selectPostInPlateByHot" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where status!=3  and  section_id in (select id from t_section where t_section.plate_id=#{plateId})
+        ORDER BY(view_num*0.3+reply_num*0.3+collect_num*0.1+approve_num*0.3) DESC
+        limit #{start},#{size}
+    </select>
+
+    <!--分区根据最新时间-->
+    <select id="selectPostBySectionIdAndUpdateTime" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where status!=3   and  section_id=#{sectionId}
+        order by update_time DESC
+        limit #{start},#{size}
+    </select>
+
+    <!--分区根据分布时间-->
+    <select id="selectPostBySectionIdAndSendTime" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where status!=3   and  section_id =#{sectionId}
+        order by post_time DESC
+        limit #{start},#{size}
+    </select>
+
+    <!--分区根据热度-->
+    <select id="selectPostBySectionIdAndHot" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where status!=3   and  section_id=#{sectionId}
+        ORDER BY(view_num*0.3+reply_num*0.3+collect_num*0.1+approve_num*0.3) DESC
+        limit #{start},#{size}
+    </select>
+
+    <!--管理员查找一个板块下的帖子数量-->
+    <select id="selectPostCountByPlateIdForManager" resultType="Integer">
+        select count(*) from t_post where section_id in
+                                          (select id from t_section where t_section.plate_id=#{plateId})
+    </select>
+
+    <!--管理员根据最新更新时间查找一个板块下需要审核的帖子-->
+    <select id="selectPostInPlateByUpdateTimeForManager" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where status=3 and section_id in (select id from t_section where t_section.plate_id=#{plateId}) and i.post_id=t_post.id
+        order by update_time DESC
+        limit #{start},#{size}
     </select>
 
 
-
-    <!--图片新增列-->
-    <insert id="addImagePost" keyProperty="id" useGeneratedKeys="true">
-        insert into bbs.t_post(titile, user_id,image, section_id,  content,type)
-        values (#{titile}, #{userId}, #{image}, #{sectionId},#{content},
-         #{type})
-    </insert>
-
-    <!--文字新增列-->
-    <insert id="addWordPost" keyProperty="id" useGeneratedKeys="true">
-        insert into bbs.t_post(titile, user_id, section_id,  content,type)
-        values (#{titile}, #{userId}, #{sectionId},#{content},
-         #{type})
-    </insert>
-
-    <!--视频-->
-    <insert id="addVideoPost" keyProperty="id" useGeneratedKeys="true">
-        insert into bbs.t_post(titile, user_id, section_id, video ,content,type)
-        values (#{titile}, #{userId}, #{sectionId},#{video},#{content},
-         #{type})
-    </insert>
 
     <!--通过主键修改数据-->
     <update id="updatePost">
         update bbs.t_post
         <set>
-            <if test="titile != null and titile != ''">
-                titile = #{titile},
+            <if test="title != null and title != ''">
+                title = #{title},
             </if>
-
             <if test="content != null and content != ''">
                 content = #{content},
             </if>
@@ -135,6 +235,9 @@
             </if>
             <if test="replyNum !=null">
                 reply_num=#{replyNum},
+            </if>
+            <if test="status !=null">
+                status=#{status},
             </if>
         </set>
         where id = #{id}
@@ -166,4 +269,32 @@
             (select id from t_section where plate_id=#{id})
     </delete>
 
+    <!--根据板块名和分区名帖子总数-->
+    <select id="selectPostCountByPlateNameAndSectionName" resultType="Integer">
+        select count(*) from t_post where  section_id=
+                                          (select id from t_section where name=#{sectionName} and plate_id=
+                                                                                           (select id from t_plate where t_plate.name=#{plateName}))
+    </select>
+    <!--根据板块名和分区名帖子-->
+    <select id="selectPostByPlateNameAndSectionName" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where section_id=
+                        (select id from t_section where name=#{sectionName}  and plate_id=
+                                                                                          (select id from t_plate where t_plate.name=#{plateName}))
+        limit #{start},#{size}
+    </select>
+
+    <select id="selectUncheckPostByPlateId" resultMap="TPostMap">
+        select
+            t_post.*,i.image
+        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        where status=3 and section_id in (select id from t_section where t_section.plate_id=#{plateId})
+        limit #{start},#{size}
+    </select>
+
+    <select id="selectUncheckPostCountByPlateId" resultType="Integer">
+        select count(*) from t_post where section_id in(select id from t_section where t_section.plate_id=#{plateId})
+    </select>
 </mapper>

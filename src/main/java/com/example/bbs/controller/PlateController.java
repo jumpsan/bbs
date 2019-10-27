@@ -1,11 +1,12 @@
 package com.example.bbs.controller;
 
+import com.example.bbs.annotation.AuthChecker;
+import com.example.bbs.dto.PlateDto;
 import com.example.bbs.entity.*;
 import com.example.bbs.service.PlateService;
 import org.springframework.web.bind.annotation.*;
-
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -15,7 +16,6 @@ import java.util.List;
  * @since 2019-09-20 14:00:18
  */
 @RestController
-@RequestMapping("plate")
 public class PlateController {
     /**
      * 服务对象
@@ -23,76 +23,243 @@ public class PlateController {
     @Resource
     private PlateService plateService;
 
+//
+//    /**
+//     *
+//     * @param page 页码
+//     * @param size 每页个数
+//     * @return 列表
+//     */
+//    @GetMapping("plate/search/{page}/{size}")
+//    public Information selectAllPlateForUser(@PathVariable("page") Integer page, @PathVariable("size") Integer size) {
+//        Integer total=plateService.selectAllPlateCountForUser();
+//        if(total==null || total==0){
+//            return Information.success(204,"分页无内容返回",null);
+//        }
+//        //总页
+//        Integer totalPage=total/size+1;
+//        Integer start=(page-1)*size;
+//        List<Plate> plates = plateService.selectAllPlateForUser(start, size);
+//        Page<Plate> platePage=new Page<>();
+//        platePage.setDatas(plates);
+//        platePage.setTotalPage(totalPage);
+//        return Information.success(200,"板块列表",platePage);
+//    }
+//
+//    /**
+//     * 根据板块名模糊查询
+//     * @param plateName 板块名
+//     * @param page 页码
+//     * @param size 每页行数
+//     * @return 结果
+//     */
+//    @GetMapping("plate/search/{plateName}/{page}/{size}")
+//    public Information selectPlateForUser(@PathVariable String plateName,@PathVariable Integer page,@PathVariable Integer size){
+//        Integer total=plateService.selectPlateByNameCountForUser(plateName);
+//        if(total==null || total==0){
+//            return Information.success(204,"分页无内容返回",null);
+//        }
+//        Integer totalPage=total/size+1;
+//        Integer start=(page-1)*size;
+//        List<Plate> plates = plateService.selectPlateByNameForUser(plateName,start, size);
+//        Page<Plate> platePage=new Page<>();
+//        platePage.setDatas(plates);
+//        platePage.setTotalPage(totalPage);
+//        return Information.success(200,"板块列表",platePage);
+//    }
 
     /**
-     *
-     * @param page 页码
-     * @param size 每页个数
-     * @return 列表
+     * 根据指定的名字查询
+     * @param name 板块名
+     * @return 结果
      */
-    @GetMapping("search/{page}/{size}")
-    public Information<Page> selectAllPlate(@PathVariable("page") Integer page, @PathVariable("size") Integer size) {
-        //总页数
-        Integer totalPage=plateService.selectAllPlate()/size+1;
-        Information<Page> information =new Information<>();
-        Integer start=(page-1)*size;
-        List<Plate> plates = plateService.selectPlate(start, size);
-        Page<Plate> pageObject=new Page<>();
-        pageObject.setDatas(plates);
-        pageObject.setTotalPage(totalPage);
-        if(plates!=null) {
-            information.setData(pageObject);
-            information.setMsg("板块列表");
-            information.setStatus(200);
-        }else {
-            information.setMsg("无");
-            information.setStatus(204);
+    @GetMapping("plate/search/fixed/{name}")
+    public Information selectPlateByFixNameForUser(@PathVariable String name){
+        if(name==null || name.length()<=0){
+            return Information.error(406,"关键信息不可为空");
         }
-        return information;
+        Plate plate = plateService.selectPlateByFixedNameForUser(name);
+        Integer sectionNum=plateService.selectSectionCountByFixedNameForUser(name);
+        List<User> roles=plateService.selectUsersByFixedNameForUser(name);
+        if(plate==null || sectionNum==null || roles==null){
+            return Information.error(400,"查询失败,板块可能被禁用");
+        }
+
+        PlateDto plateDto=new PlateDto(plate,sectionNum,roles);
+        return Information.success(200,"查询结果",plateDto);
+
     }
 
     /**
-     * 添加板块
-     *
-     * @param plate 板块信息
+     * 根据板块id查询
+     * @param id 板块编号
      * @return 结果
      */
-    @PostMapping("add")
-    public Information<Integer> addPlate(Plate plate, HttpSession session) {
-        Information<Integer> information =new Information<>();
-        Object admin_session = session.getAttribute("admin_session");
-        Object role_session = session.getAttribute("role_session");
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else if (plate.getUserId()==null && plate.getName()!=null) {
-            msg = "创建用户或板块名字不能为空";
-            status=406;
+    @GetMapping("plate/search/id/{id}")
+    public Information selectPlateByIdForUser(@PathVariable Integer id){
+        if(id==null){
+            return Information.error(406,"关键信息不能为空");
+        }
+        Plate plate=plateService.selectPlateByIdForUser(id);
+        Integer sectionNum=plateService.selectSectionCountByIdForUser(id);
+        List<User> roles=plateService.selectUsersByIdForUser(id);
+        if(plate==null || sectionNum==null || roles==null){
+            return Information.error(400,"查询失败,板块可能被禁用");
+        }
+        PlateDto plateDto=new PlateDto(plate,sectionNum,roles);
+        return Information.success(200,"查询结果",plateDto);
+    }
+
+    /**
+     * 查询所有板块但不分页
+     * @return 板块列表
+     */
+    @GetMapping("plate/search/all")
+    public Information selectAllPlateForUser(){
+        List<Plate> plates = plateService.selectAllPlateWithoutPageForUser();
+        if(plates==null || plates.size()<=0){
+            return Information.error(204,"无内容返回");
+        }
+        return Information.success(200,"板块列表",plates);
+    }
+
+    /**
+     * 管理员查询所有板块但不分页
+     * @return 板块列表
+     */
+    @GetMapping("manager/plate/search/all")
+    public Information selectAllPlateForManager(){
+        List<Plate> plates = plateService.selectAllPlateWithoutPageForManager();
+        if(plates==null || plates.size()<=0){
+            return Information.error(204,"无内容返回");
+        }
+        return Information.success(200,"板块列表",plates);
+    }
+
+
+    /**
+     * 管理员根据板块id查询
+     * @param id 板块编号
+     * @return 结果
+     */
+    @GetMapping("manager/plate/search/id/{id}")
+    public Information selectPlateByIdForManager(@PathVariable Integer id){
+        if(id==null){
+            return Information.error(406,"关键信息不能为空");
+        }
+        Plate plate=plateService.selectPlateByIdForManager(id);
+        Integer sectionNum=plateService.selectSectionCountByIdForManager(id);
+        List<User> roles=plateService.selectUsersByIdForManager(id);
+        if(plate==null || sectionNum==null ||  roles==null){
+            return Information.error(400,"查询失败");
+        }
+        PlateDto plateDto=new PlateDto(plate,sectionNum,roles);
+        return Information.success(200,"查询结果",plateDto);
+    }
+
+
+//    /**
+//     * 管理员查询，包括禁用的和启用的
+//     * @param page 页码
+//     * @param size 每页个数
+//     * @return 列表
+//     */
+//    @GetMapping("manager/plate/search/{page}/{size}")
+//    public Information selectAllPlateForManager(@PathVariable("page") Integer page, @PathVariable("size") Integer size) {
+//        Integer total=plateService.selectAllPlateCountForManager();
+//        if(total==null || total==0){
+//            return Information.success(204,"分页无内容返回",null);
+//        }
+//        //总页
+//        Integer totalPage=total/size+1;
+//        Integer start=(page-1)*size;
+//        List<Plate> plates = plateService.selectAllPlateForManager(start, size);
+//        Page<Plate> platePage=new Page<>();
+//        platePage.setDatas(plates);
+//        platePage.setTotalPage(totalPage);
+//        return Information.success(200,"板块列表",platePage);
+//    }
+//
+//    /**
+//     * 管理员查询，包括禁用的和启用的
+//     * @param plateName 板块名
+//     * @param page 页码
+//     * @param size 每页行数
+//     * @return 结果
+//     */
+//    @GetMapping("manager/plate/search/{plateName}/{page}/{size}")
+//    public Information selectPlateForManager(@PathVariable String plateName,@PathVariable Integer page,@PathVariable Integer size){
+//        Integer total=plateService.selectPlateByNameCountForManager(plateName);
+//        if(total==null || total==0){
+//            return Information.success(204,"分页无内容返回",null);
+//        }
+//        Integer totalPage=total/size+1;
+//        Integer start=(page-1)*size;
+//        List<Plate> plates = plateService.selectPlateByNameForManager(plateName,start, size);
+//        Page<Plate> platePage=new Page<>();
+//        platePage.setDatas(plates);
+//        platePage.setTotalPage(totalPage);
+//        return Information.success(200,"板块列表",platePage);
+//    }
+
+    /**
+     * 管理员根据指定的名字查询
+     * @param name 板块名
+     * @return 结果
+     */
+    @GetMapping("manager/plate/search/fixed/{name}")
+    public Information selectPlateByFixNameForManager(@PathVariable String name){
+        if(name==null || name.length()<=0){
+            return Information.error(406,"关键信息不可为空");
+        }
+        Plate plate = plateService.selectPlateByFixedNameForManager(name);
+        Integer sectionNum=plateService.selectSectionCountByFixedNameForManager(name);
+        List<User> roles=plateService.selectUsersByFixedNameForManager(name);
+        if(plate==null || sectionNum==null || roles==null){
+            return Information.error(400,"查询失败");
+        }
+        PlateDto plateDto=new PlateDto(plate,sectionNum,roles);
+        return Information.success(200,"查询结果",plateDto);
+
+    }
+
+
+
+
+
+    /**
+     * 添加板块
+     * @param status 状态
+     * @param describes 描述
+     * @param name 板块名
+     * @return 结果
+     */
+    @PostMapping("manager/plate/add")
+    public Information addPlate(HttpServletRequest request, String name, String describes, Integer status) {
+        Integer id=(Integer)request.getAttribute("userId");
+        Plate plate=new Plate();
+        if (id==null || name==null || status==null) {
+            return Information.error(406,"关键信息不可为空");
         }else{
+            plate.setDescribes(describes);
+            plate.setName(name);
+            plate.setStatus(status);
+            plate.setUserId(id);
             Integer plateId = plateService.addPlate(plate);
-            information.setData(plateId);
             if(plateId==-2){
-                msg="名称重复";
-                status=402;
+                return Information.error(402,"名称重复");
             }
             else if (plateId==-3) {
-                msg = "创建用户不存在";
-                status=404;
+                return Information.error(404,"创建用户不存在");
             }
-            else if(plateId==0){
-                msg="添加失败";
-                status=400;
+            else if(plateId==-7){
+                return Information.error(400,"创建失败");
             }
             else {
-                msg = "创建成功";
-                status=200;
+                Plate newPlate = plateService.selectPlateByIdForManager(plateId);
+                return Information.success(200,"创建",newPlate);
             }
         }
-        information.setMsg(msg);
-        information.setStatus(status);
-        return information;
     }
 
     /**
@@ -101,31 +268,15 @@ public class PlateController {
      * @param id 板块id
      * @return 结果
      */
-    @DeleteMapping("delete/{id}")
-    public Information<Integer> deletePlate(@PathVariable("id") Integer id, HttpSession session) {
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        Information<Integer> information =new Information<>();
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else{
-            Integer result = plateService.deletePlate(id);
-            if(result>0){
-                msg="删除成功";
-                status=200;
-            }
-            else {
-                msg = "删除失败";
-                status=400;
-            }
-            information.setData(result);
+    @GetMapping("manager/plate/delete/{id}")
+    public Information deletePlate(@PathVariable("id") Integer id) {
+        Integer result = plateService.deletePlate(id);
+        if(result>0){
+            return Information.success("删除");
         }
-        information.setStatus(status);
-        information.setMsg(msg);
-        return information;
+        else {
+            return Information.error(400,"删除失败");
+        }
     }
 
     /**
@@ -133,38 +284,25 @@ public class PlateController {
      * @param plate 板块信息
      * @return 结果
      */
-    @PutMapping("update/{id}")
-    public Information<Integer> updatePlate(@PathVariable Integer id, Plate plate, HttpSession session) {
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        Information<Integer> information =new Information<>();
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }
-        else if(plate.getId()==null){
-            msg="板块Id不可为空";
-            status=403;
+    @PostMapping("manager/plate/update")
+    public Information updatePlate( Plate plate) {
+        if(plate.getId()==null){
+            return Information.error(406,"关键信息不可为空");
         } else{
+            //不可修改创建者
+            plate.setUserId(null);
             Integer result = plateService.updatePlate(plate);
             if(result>0){
-                msg="修改成功";
-                status=200;
+                Plate newPlate = plateService.selectPlateByIdForManager(plate.getId());
+                return Information.success(200,"修改",newPlate);
             }
             else if(result==0) {
-                msg = "修改失败";
-                status=400;
+                return Information.error(400,"修改失败");
             }
-            else {
-                msg="名称重复";
-                status=402;
+            else{
+                return Information.error(402,"名称重复");
             }
-            information.setData(result);
+
         }
-        information.setStatus(status);
-        information.setMsg(msg);
-        return information;
     }
 }

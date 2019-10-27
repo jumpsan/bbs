@@ -23,7 +23,15 @@ public interface SectionDao {
 
     Section selectSectionById(Integer id);
 
-    Section selectSectionByName(String name);
+    Section selectSectionByNameAndPlateId(String name,Integer plateId);
 
     Integer selectAllSectionByPlateId(Integer id);
+
+    /**
+     * 根据板块禁用/启用分区
+     * @param plateId 板块编号
+     * @param status 板块状态
+     * @return
+     */
+    Integer enableSectionByPlateId(Integer plateId, Integer status);
 }

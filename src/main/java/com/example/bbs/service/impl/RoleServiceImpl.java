@@ -1,7 +1,10 @@
 package com.example.bbs.service.impl;
 
+import com.example.bbs.dao.UserDao;
+import com.example.bbs.entity.Plate;
 import com.example.bbs.entity.Role;
 import com.example.bbs.dao.RoleDao;
+import com.example.bbs.entity.User;
 import com.example.bbs.service.RoleService;
 import org.springframework.stereotype.Service;
 
@@ -14,10 +17,12 @@ import java.util.List;
  * @author makejava
  * @since 2019-09-20 14:00:56
  */
-@Service("tRoleService")
+@Service("RoleService")
 public class RoleServiceImpl implements RoleService {
     @Resource
     private RoleDao roleDao;
+    @Resource
+    private UserDao userDao;
 
     /**
      * 根据板块id查询
@@ -26,7 +31,7 @@ public class RoleServiceImpl implements RoleService {
      * @return 版主列表
      */
     @Override
-    public List<Role> selectRoleByPlateId(Integer id) {
+    public List<User> selectRoleByPlateId(Integer id) {
         return roleDao.selectRoleByPlateId(id);
     }
 
@@ -37,7 +42,7 @@ public class RoleServiceImpl implements RoleService {
      * @return 结果
      */
     @Override
-    public List<Role> selectRoleByUserId(Integer id) {
+    public List<Plate> selectRoleByUserId(Integer id) {
         return roleDao.selectRoleByUserId(id);
     }
 
@@ -48,8 +53,21 @@ public class RoleServiceImpl implements RoleService {
      * @return 主键值
      */
     @Override
-    public Role addRole(Role role) {
-        return roleDao.addRole(role);
+    public Integer addRole(Role role) {
+        Role checkRole = roleDao.selectRoleByUserIdAndPlateId(role.getUserId(), role.getPlateId());
+        if(checkRole!=null){
+            return -2;
+        }
+        User user = userDao.selectUserById(role.getUserId());
+        if(user==null){
+            return -3;//用户不存在
+        }
+        Integer result = roleDao.addRole(role);
+        if(result<=0){
+            return -7;//添加失败
+        }else{
+            return role.getId();
+        }
     }
 
     /**
@@ -85,15 +103,21 @@ public class RoleServiceImpl implements RoleService {
         return roleDao.deleteRoleByUserId(id);
     }
 
+    @Override
+    public Integer deleteRoleByPlateIdAndUserId(Integer plateId, Integer userId) {
+        return roleDao.deleteRoleByPlateIdAndUserId(plateId,userId);
+    }
+
     /**
-     * 根据用户id和版块id
+     * 查找版主
      *
-     * @param user_id  用户id
-     * @param plate_id 版块id
-     * @return 结果
+     * @param id
+     * @return
      */
     @Override
-    public Role selectRoleByUserIdAndPlateId(Integer user_id, Integer plate_id) {
-        return roleDao.selectRoleByUserIdAndPlateId(user_id, plate_id);
+    public Role selectRoleById(Integer id) {
+        return roleDao.selectRoleById(id);
     }
+
+
 }

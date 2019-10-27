@@ -2,9 +2,11 @@ package com.example.bbs.controller;
 
 import com.example.bbs.entity.*;
 import com.example.bbs.service.SectionService;
+import com.example.bbs.utils.Authorization;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 
@@ -15,7 +17,6 @@ import java.util.List;
  * @since 2019-09-20 14:01:07
  */
 @RestController
-@RequestMapping("section")
 public class SectionController {
     /**
      * 服务对象
@@ -29,31 +30,29 @@ public class SectionController {
      * @param id 板块编号
      * @return 分区列表
      */
-    @GetMapping("select/plate/{id}/{page}/{size}")
+    @GetMapping("section/select/plate/{id}/{page}/{size}")
     public Information selectSectionByPlateId(@PathVariable("id") Integer id,@PathVariable Integer page,@PathVariable Integer size) {
-        Information<Page> information =new Information<>();
         if(id==null){
-            information.setMsg("板块id不能为空");
-            information.setStatus(406);
+            return Information.error(406,"板块编号不可为空");
         }else{
+            //总条数
+            Integer total=sectionService.selectAllSectionByPlateId(id);
+            if(total==null || total==0){
+                return Information.error(204,"无内容");
+            }
             //总页数
-            Integer totalPage=sectionService.selectAllSectionByPlateId(id)/size+1;
-
+            Integer totalPage=total/size+1;
             Integer start=(page-1)*size;
             List<Section> sections= sectionService.selectSectionByPlateId(id,start, size);
-            Page<Section> pageObject=new Page<>();
-            pageObject.setDatas(sections);
-            pageObject.setTotalPage(totalPage);
             if(sections!=null) {
-                information.setData(pageObject);
-                information.setMsg("分区列表");
-                information.setStatus(200);
+                Page<Section> sectionPage=new Page<>();
+                sectionPage.setDatas(sections);
+                sectionPage.setTotalPage(totalPage);
+                return Information.success(200,"分区列表",sectionPage);
             }else {
-                information.setMsg("无");
-                information.setStatus(204);
+                return Information.error(204,"无内容");
             }
         }
-        return information;
     }
 
     /**
@@ -61,24 +60,18 @@ public class SectionController {
      * @param id
      * @return
      */
-    @GetMapping("select/{id}")
+    @GetMapping("section/select/{id}")
     public  Information selectSectionById(@PathVariable("id") Integer id){
-        Information<Section> information=new Information<>();
         if(id==null){
-            information.setMsg("板块id不能为空");
-            information.setStatus(406);
+            return Information.error(406,"分区编号不可为空");
         }else{
             Section section = sectionService.selectSectionById(id);
             if(section!=null) {
-                information.setData(section);
-                information.setStatus(200);
-                information.setMsg("分区");
+                return Information.success(200,"分区",section);
             }else {
-                information.setMsg("无");
-                information.setStatus(204);
+                return Information.error(204,"无内容");
             }
         }
-        return information;
     }
 
     /**
@@ -87,49 +80,33 @@ public class SectionController {
      * @param section 分区
      * @return 主键值，分区编号
      */
-    @PostMapping("add")
-    public Information<Integer> addSection(Section section, HttpSession session) {
-        Information<Integer> information =new Information<>();
-        Object admin_session = session.getAttribute("admin_session");
-        Object role_session = session.getAttribute("role_session");
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else if (section.getUserId()==null && section.getName()!=null && section.getPlateId()==null) {
-            msg = "创建用户或板块名字或分区名为空";
-            status=406;
+    @PostMapping("manager/section/add")
+    public Information addSection(Section section, HttpServletRequest request) {
+        Integer userId=(Integer) request.getAttribute("userId");
+        section.setUserId(userId);
+        if (section.getUserId()==null && section.getName()!=null && section.getPlateId()==null) {
+            return Information.error(406,"关键信息不可为空");
         }else{
             Integer sectionId = sectionService.addSection(section);
-            information.setData(sectionId);
             if(sectionId==-2){
-                msg="名称重复";
-                status=402;
+                return Information.error(402,"名称重复");
             }
             else if (sectionId==-3) {
-                msg = "创建用户不存在";
-                status=404;
+                return Information.error(404,"创建的用户不存在");
             }
             else if (sectionId==-4) {
-                msg = "板块被禁用，不允许操作";
-                status=405;
+                return Information.error(405,"板块被禁用");
             }else if (sectionId==-5) {
-                msg = "所添加目标板块不存在";
-                status=407;
+                return Information.error(407,"板块不存在");
             }
             else if(sectionId==0){
-                msg="添加失败";
-                status=400;
+                return Information.error(400,"添加失败");
             }
             else {
-                msg = "创建成功";
-                status=200;
+                Section newSection = sectionService.selectSectionById(sectionId);
+                return Information.success(200,"创建分区",newSection);
             }
         }
-        information.setMsg(msg);
-        information.setStatus(status);
-        return information;
     }
 
     /**
@@ -138,31 +115,16 @@ public class SectionController {
      * @param id 分区编号
      * @return 结果
      */
-    @DeleteMapping("delete/{id}")
-    public Information deleteSectionById(@PathVariable Integer id,HttpSession session) {
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        Information<Integer> information =new Information<>();
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else{
-            Integer result = sectionService.deleteSectionById(id);
-            if(result>0){
-                msg="删除成功";
-                status=200;
-            }
-            else {
-                msg = "删除失败";
-                status=400;
-            }
-            information.setData(result);
+    @GetMapping("manager/section/delete/{id}")
+    public Information deleteSectionById(@PathVariable Integer id) {
+        Integer result = sectionService.deleteSectionById(id);
+        if(result>0){
+            return Information.success("删除分区");
+        }else if (result==-3) {
+            return Information.error(404,"无权");
+        } else {
+            return Information.error(400,"删除失败");
         }
-        information.setStatus(status);
-        information.setMsg(msg);
-        return information;
     }
 
     /**
@@ -171,32 +133,27 @@ public class SectionController {
      * @param section 分区
      * @return 结果
      */
-    @PutMapping("update/{id}")
-    public Information updateSection(@PathVariable Integer id,Section section, HttpSession session) {
-        Information<Integer> information=new Information<>();
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        if(admin_session==null && role_session==null){
-            information.setMsg("权限不足");
-            information.setStatus(401);
-        }else if(section.getId()==null){
-            information.setMsg("分区id不能为空");
-            information.setStatus(403);
+    @PostMapping("manager/section/update")
+    public Information updateSection(Section section,HttpServletRequest request) {
+       if(section.getId()==null){
+            return Information.error(406,"关键信息不可为空");
         }else {
+            Integer userId=(Integer)request.getAttribute("userId");
+            section.setUserId(userId);
             Integer re=sectionService.updateSection(section);
             if(re==null || re==0){
-                information.setMsg("更新失败");
-                information.setStatus(400);
+                return Information.error(400,"更新失败");
             }else if(re==-2){
-                information.setMsg("名称重复");
-                information.setStatus(402);
-            } else{
-                information.setMsg("更新成功");
-                information.setStatus(200);
+                return Information.error(402,"名称重复");
+            }else if(re==-4){
+                return Information.error(405,"板块被禁用");
+            } else if (re==-3) {
+                return Information.error(404,"无权");
+            }else{
+                Section newSection = sectionService.selectSectionById(section.getId());
+                return Information.success(200,"更新分区",newSection);
             }
-            information.setData(re);
         }
-        return information;
     }
 
 //    /**

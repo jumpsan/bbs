@@ -13,5 +13,21 @@ import java.util.List;
 public interface MessageDao {
     List<Message> selectContent(Integer receive_id, Integer send_id, Integer start, Integer num);
 
-    Message addMessage(Message message);
+    Integer addMessage(Message message);
+
+    Integer selectAllCountByTalkers(Integer receiveId, Integer sendId);
+
+    /**
+     * 根据用户编号删除
+     * @param id
+     * @return
+     */
+    Integer deleteMessageByUserId(Integer id);
+
+    /**
+     * 根据主键查信息
+     * @param id
+     * @return
+     */
+    Message selectMessageById(Integer id);
 }

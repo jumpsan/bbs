@@ -39,4 +39,12 @@ public interface CollectDao {
     Integer selectAllCollectCountByUserId(Integer id);
 
     Integer selectAllCollectCountByPostId(Integer id);
+
+    Collect selectCollectById(Integer id);
+
+    Collect selectCollectUserIdAndPostId(Integer userId, Integer postId);
+
+    Integer deleteCollectByUserIdAndPostId(Integer userId, Integer postId);
+
+    Collect selectCollectByUserIdAndPostId(Integer userId, Integer postId);
 }

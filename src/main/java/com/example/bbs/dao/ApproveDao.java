@@ -1,6 +1,7 @@
 package com.example.bbs.dao;
 
 import com.example.bbs.entity.Approve;
+import com.example.bbs.entity.Post;
 
 import java.util.List;
 
@@ -18,7 +19,7 @@ public interface ApproveDao {
      * @param id 帖子id
      * @return 点赞列表
      */
-    List<Approve> selectApproveByPostId(Integer id);
+    Integer selectApproveCountByPostId(Integer id);
 
     /**
      * 添加点赞记录
@@ -26,7 +27,7 @@ public interface ApproveDao {
      * @param approve 点赞信息
      * @return 主键值
      */
-    Approve addApprove(Approve approve);
+    Integer addApprove(Approve approve);
 
     /**
      * 删除点赞记录
@@ -52,4 +53,26 @@ public interface ApproveDao {
     Integer deleteApproveByPostType(Integer type);
 
     Integer deleteApproveByPostUserId(Integer id);
+
+    Approve selectApproveById(Integer id);
+
+    Integer deleteApproveByUserId(Integer id);
+
+    Approve selectApproveByUserIdAndPostId(Integer userId, Integer postId);
+
+    Integer deleteApproveByUserIdAndPostId(Integer id, Integer postId);
+    /**
+     * 根据用户编号，查看点赞过的帖子
+     *
+     * @param userId
+     * @return
+     */
+    List<Post> selectApprovedPostByUserId(Integer userId,Integer start,Integer size);
+    /**
+     * 根据用户编号，查看点赞过的帖子数量
+     *
+     * @param userId
+     * @return
+     */
+    Integer selectApprovedPostCountByUserId(Integer userId);
 }

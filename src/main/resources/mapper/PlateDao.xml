@@ -9,32 +9,117 @@
         <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
         <result property="describes" column="describes" jdbcType="VARCHAR"/>
         <result property="status" column="status" jdbcType="INTEGER"/>
+        <result property="viewNum" column="view_num" jdbcType="INTEGER"/>
+        <result property="postNum" column="post_num" jdbcType="INTEGER"/>
+        <collection property="sections" ofType="section" column="id" select="com.example.bbs.dao.SectionDao.selectSectionByPlateIdWithoutPage"/>
     </resultMap>
 
+    <resultMap type="com.example.bbs.entity.User" id="TUserMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="registerTime" column="register_time" jdbcType="TIMESTAMP"/>
+        <result property="introduce" column="introduce" jdbcType="VARCHAR"/>
+        <result property="image" column="image" jdbcType="VARCHAR"/>
+        <result property="postNum" column="post_num" jdbcType="INTEGER"/>
+        <result property="replyNum" column="reply_num" jdbcType="INTEGER"/>
+        <result property="collectNum" column="collect_num" jdbcType="INTEGER"/>
+    </resultMap>
+
+
+
     <!--查询所有版块-->
-    <select id="selectPlate" resultMap="TPlateMap">
+    <select id="selectAllPlateForUser" resultMap="TPlateMap">
         select
-        id, name, user_id, create_time,describes,status
+            *
         from t_plate
+        where status=1
         limit #{start},#{num}
     </select>
 
-    <select id="selectAllPlate" resultType="Integer">
-        select COUNT(*) from t_plate
-    </select>
 
-    <select id="selectPlateByName" resultMap="TPlateMap">
+    <!--查询所有板块但不分页-->
+    <select id="selectAllPlateWithoutPageForUser" resultMap="TPlateMap">
         select
-        id, name, user_id, create_time,describes,status
+            *
         from t_plate
-        where name like concat('%',#{name},'%')
+        where status=1
     </select>
 
-    <!--根据主键查询-->
-    <select id="selectPlateById" resultMap="TPlateMap">
-        select id, name, user_id, create_time,describes,status
+    <select id="selectAllPlateCountForUser" resultType="Integer">
+        select COUNT(*) from t_plate where status=1
+    </select>
+
+
+
+    <select id="selectPlateByNameForUser" resultMap="TPlateMap">
+        select
+        *
         from t_plate
-        where id=#{id}
+        where name like concat('%',#{name},'%') and status=1
+        limit  #{start}, #{size}
+    </select>
+
+
+
+    <select id="selectPlateByFixNameForUser" resultMap="TPlateMap">
+        select *
+        from t_plate
+        where name=#{name} and status=1
+    </select>
+
+
+
+
+    <select id="selectPlateByNameCountForUser" resultType="Integer">
+        select count(*) from t_plate where name like concat('%',#{name},'%') and status=1;
+    </select>
+
+
+
+    <!--根据名字查找板块分区数-->
+    <select id="selectSectionCountByFixedNameForUser" resultType="Integer">
+        select count(*) from t_section where status=1 and plate_id =
+                                             (select id from t_plate where t_plate.name=#{name} and t_plate.status=1)
+    </select>
+
+
+
+
+    <!--根据名字查找帖子数-->
+    <select id="selectPostCountByFixedNameForUser" resultType="Integer">
+        select count(*) from t_post where section_id in
+                                          (select id from t_section where t_section.status=1 and plate_id=
+                                                                          (select id from t_plate where t_plate.name=#{name} and t_plate.status=1))
+    </select>
+
+
+    <!--只能查找用户，不能查找管理员-->
+    <!--根据名字查找版主-->
+    <select id="selectUsersByFixedNameForUser" resultMap="TUserMap">
+        select id, username,  register_time, introduce, image, post_num, reply_num, collect_num from t_user
+        where id in (select user_id from t_role where plate_id=
+                                                      (select id from t_plate where name=#{name} and status=1))
+    </select>
+
+    <!--根据板块编号查询-->
+    <select id="selectPlateByIdForUser" resultMap="TPlateMap">
+        select id, name, user_id, create_time, describes, status, view_num from t_plate where id=#{id} and status=1
+    </select>
+
+    <!--根据板块编号查询分区数量-->
+    <select id="selectSectionCountByIdForUser" resultType="Integer">
+        select count(*) from t_section where plate_id=(select id from t_plate where id=#{id} and t_plate.status=1)
+    </select>
+    <!--根据板块编号查询帖子数-->
+    <select id="selectPostCountByIdForUser" resultType="Integer">
+        select count(*) from t_post where section_id in
+                                          (select id from t_section where plate_id=(select id from t_plate where id=#{id} and t_plate.status=1))
+    </select>
+    <!--根据板块编号查询版主-->
+    <select id="selectUsersByIdForUser" resultMap="TUserMap">
+        select id, username, password, register_time, introduce, image, post_num, reply_num, collect_num from t_user where id in
+                                            (select user_id from t_role where plate_id=(select id from t_plate where id=#{id} and t_plate.status=1))
     </select>
 
     <!--新增版块-->
@@ -50,9 +135,6 @@
             <if test="name != null and name != ''">
                 name = #{name},
             </if>
-            <if test="userId != null">
-                user_id = #{userId},
-            </if>
             <if test="createTime != null">
                 create_time = #{createTime},
             </if>
@@ -61,6 +143,12 @@
             </if>
             <if test="status != null">
                 status = #{status},
+            </if>
+            <if test="viewNum!=null">
+                view_num=#{viewNum},
+            </if>
+            <if test="postNum!=null">
+                post_num=#{postNum}
             </if>
         </set>
         where id = #{id}
@@ -72,4 +160,79 @@
     </delete>
 
 
+    <!--管理员查询-->
+    <select id="selectAllPlateForManager" resultMap="TPlateMap">
+        select
+            *
+        from t_plate
+        limit #{start},#{size}
+    </select>
+    <!--查询所有板块但不分页-->
+    <select id="selectAllPlateWithoutPageForManager" resultMap="TPlateMap">
+        select
+            *
+        from t_plate
+    </select>
+
+    <select id="selectAllPlateCountForManager" resultType="Integer">
+        select COUNT(*) from t_plate
+    </select>
+
+    <select id="selectPlateByNameForManager" resultMap="TPlateMap">
+        select
+            *
+        from t_plate
+        where name like concat('%',#{name},'%')
+        limit #{start},#{size}
+    </select>
+    <select id="selectPlateByNameCountForManager" resultType="Integer">
+        select count(*) from t_plate where name like concat('%',#{name},'%');
+    </select>
+
+    <select id="selectPlateByFixNameForManager" resultMap="TPlateMap">
+        select * from t_plate where name=#{name}
+    </select>
+
+    <select id="selectPlateByFixedNameForManager" resultMap="TPlateMap">
+        select * from t_plate where name=#{name}
+    </select>
+
+    <select id="selectSectionCountByFixedNameForManager" resultType="Integer">
+        select count(*) from t_section where plate_id=
+                                             (select id from t_plate where t_plate.name=#{name})
+    </select>
+
+    <select id="selectPostCountByFixedNameForManager" resultType="Integer">
+        select count(*) from t_post where section_id in
+                                          (select id from t_section where plate_id =
+                                                                          (select id from t_plate where t_plate.name=#{name}))
+    </select>
+
+    <select id="selectUsersByFixedNameForManager" resultMap="TUserMap">
+        select id, username, password, register_time, introduce, image, post_num, reply_num, collect_num from t_user where id in
+                                                                                                                           (select user_id from t_role where plate_id=                                                                                                                                               (select id from t_plate where name=#{name}))
+    </select>
+
+    <!--根据板块编号查询-->
+    <select id="selectPlateByIdForManager" resultMap="TPlateMap">
+        select * from t_plate where id=#{id}
+    </select>
+
+    <!--根据板块编号查询分区数量-->
+    <select id="selectSectionCountByIdForManager" resultType="Integer">
+        select count(*) from t_section where plate_id=#{id}
+    </select>
+    <!--根据板块编号查询帖子数-->
+    <select id="selectPostCountByIdForManager" resultType="Integer">
+        select count(*) from t_post where section_id in
+                                          (select id from t_section where plate_id=#{id})
+    </select>
+    <!--根据板块编号查询版主-->
+    <select id="selectUsersByIdForManager" resultMap="TUserMap">
+        select id, username, password, register_time, introduce, image, post_num, reply_num, collect_num from t_user where id in                                                                                                             (select user_id from t_role where plate_id=#{id} )
+    </select>
+    <select id="selectPlateBySectionId" resultMap="TPlateMap">
+        select * from t_plate where id=
+                                  (select plate_id from t_section where id=#{id})
+    </select>
 </mapper>

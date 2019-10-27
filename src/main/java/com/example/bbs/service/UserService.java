@@ -3,6 +3,8 @@ package com.example.bbs.service;
 import com.example.bbs.entity.User;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /**
  * (TUser)表服务接口
  *
@@ -15,11 +17,16 @@ public interface UserService {
 
     User selectUserById(Integer id);
 
-    User selectUserByIdAndPassword(Integer id, String password);
+    User selectUserByNameAndPassword(String username, String password);
 
     Integer addUser(User user);
 
-    boolean deleteUserById(Integer id);
+    Integer deleteUserById(Integer id);
 
-    boolean updateUserById(User user);
+    Integer updateUserById(User user);
+
+
+    Integer selectAllUserCount();
+
+    List<User> selectAllUser(Integer start, Integer size);
 }

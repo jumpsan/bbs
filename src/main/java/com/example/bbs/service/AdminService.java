@@ -35,13 +35,30 @@ public interface AdminService {
      * @param admin 管理员信息
      * @return 账号
      */
-    Admin addAdmin(Admin admin);
+    Integer addAdmin(Admin admin);
+
+    //废弃
+//    /**
+//     * 根据账号删除管理员
+//     *
+//     * @param id 账号
+//     * @return 结果
+//     */
+//    boolean deleteAdminById(Integer id);
 
     /**
-     * 根据账号删除管理员
-     *
-     * @param id 账号
-     * @return 结果
+     * 根据名称删除管理员
+     * @param name 名称
+     * @return 修改的行数
      */
-    boolean deleteAdminById(Integer id);
+    Integer deleteAdminByName(String name);
+
+    /**
+     * 根据名字查找
+     * @param name 名称
+     * @return 管理员信息
+     */
+    Admin selectAdminByName(String name);
+
+    Integer deleteAdminById(Integer id);
 }

@@ -1,6 +1,11 @@
 package com.example.bbs.controller;
 
+import ch.qos.logback.core.joran.conditional.IfAction;
+import com.example.bbs.annotation.RightChecker;
+import com.example.bbs.entity.Information;
+import com.example.bbs.entity.Plate;
 import com.example.bbs.entity.Role;
+import com.example.bbs.entity.User;
 import com.example.bbs.service.RoleService;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +19,6 @@ import java.util.List;
  * @since 2019-09-20 14:00:56
  */
 @RestController
-@RequestMapping("tRole")
 public class RoleController {
     /**
      * 服务对象
@@ -28,9 +32,18 @@ public class RoleController {
      * @param id 板块id
      * @return 列表版主
      */
-    @GetMapping("selectRoleByPlateId")
-    public List<Role> selectRoleByPlateId(Integer id) {
-        return roleService.selectRoleByPlateId(id);
+    @GetMapping("role/select/plate/{id}")
+    public Information selectRoleByPlateId(@PathVariable Integer id) {
+        if(id==null){
+            return Information.error(406,"关键信息不可为空");
+        }else{
+            List<User> users = roleService.selectRoleByPlateId(id);
+            if(users==null || users.size()==0){
+                return Information.error(204,"无内容");
+            }
+            return Information.success(200,"版主",users);
+
+        }
     }
 
     /**
@@ -39,22 +52,19 @@ public class RoleController {
      * @param id 用户id
      * @return 板主列表
      */
-    @GetMapping("selectRoleByUserId")
-    public List<Role> selectRoleByUserId(Integer id) {
-        return roleService.selectRoleByUserId(id);
+    @GetMapping("role/select/user/{id}")
+    public Information selectRoleByUserId(@PathVariable Integer id) {
+        if(id==null){
+            return Information.error(406,"关键信息不可为空");
+        }else{
+            List<Plate> plates = roleService.selectRoleByUserId(id);
+            if(plates==null || plates.size()==0){
+                return Information.error(204,"无内容");
+            }
+            return Information.success(200,"板块",plates);
+        }
     }
 
-    /**
-     * 根据用户id和版块id
-     *
-     * @param user_id  用户id
-     * @param plate_id 版块id
-     * @return 结果
-     */
-    @GetMapping("selectRoleByUserIdAndPlateId")
-    public Role selectRoleByUserIdAndPlateId(Integer user_id, Integer plate_id) {
-        return roleService.selectRoleByUserIdAndPlateId(user_id, plate_id);
-    }
 
 
     /**
@@ -63,10 +73,23 @@ public class RoleController {
      * @param role 版主信息
      * @return 主键值
      */
-    @GetMapping("addRole")
-    public Integer addRole(Role role) {
-        role = roleService.addRole(role);
-        return role.getId();
+    @PostMapping("manager/role/add")
+    public Information addRole(Role role) {
+        if(role.getPlateId()==null || role.getUserId()==null){
+            return Information.error(406,"关键信息不可为空");
+        }else {
+            Integer result = roleService.addRole(role);
+            if (result == -7) {
+                return Information.error(400,"添加失败");
+            } else if(result==-2){
+                return Information.error(402,"重复添加");
+            }else if(result==-3){
+                return Information.error(404,"用户不存在");
+            } else {
+                Role newRole = roleService.selectRoleById(result);
+                return Information.success(200,"主键",newRole);
+            }
+        }
     }
 
     /**
@@ -75,31 +98,38 @@ public class RoleController {
      * @param id 版主id
      * @return 结果
      */
-    @GetMapping("deleteRoleById")
-    public boolean deleteRoleById(Integer id) {
-        return roleService.deleteRoleById(id) > 0;
+    @GetMapping("manager/role/delete/{id}")
+    public Information deleteRoleById(@PathVariable Integer id) {
+        if(id==null){
+            return Information.error(406,"关键信息不可为空");
+
+        }else{
+            Integer result = roleService.deleteRoleById(id);
+            if(result<=0){
+                return Information.error(400,"删除失败");
+            }else{
+                return Information.success("删除");
+            }
+        }
     }
 
     /**
-     * 根据板块id删除
-     *
-     * @param id 板块id
-     * @return 结果
+     * 根据用户id以及板块id删除
+     * @param plateId
+     * @param id
+     * @return
      */
-    @GetMapping("deleteRoleByPlateId")
-    public boolean deleteRoleByPlateId(Integer id) {
-        return roleService.deleteRoleByPlateId(id) > 0;
+    @GetMapping("manager/role/delete/plate/user/{plateId}/{id}")
+    public Information deleteRoleByPlateIdAndUserId(@PathVariable Integer plateId,@PathVariable Integer id) {
+        if (plateId == null || id == null) {
+            return Information.error(406, "关键信息不可为空");
+        } else {
+            Integer result = roleService.deleteRoleByPlateIdAndUserId(plateId, id);
+            if (result <= 0) {
+                return Information.error(400, "删除失败");
+            } else {
+                return Information.success("删除");
+            }
+        }
     }
-
-    /**
-     * 根据用户id删除
-     *
-     * @param id 用户id
-     * @return 结果
-     */
-    @GetMapping("deleteRoleByUserId")
-    public boolean deleteRoleByUserId(Integer id) {
-        return roleService.deleteRoleByUserId(id) > 0;
-    }
-
 }

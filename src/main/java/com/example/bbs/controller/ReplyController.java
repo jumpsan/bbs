@@ -1,11 +1,14 @@
 package com.example.bbs.controller;
 
+import com.example.bbs.annotation.AuthChecker;
 import com.example.bbs.entity.*;
 import com.example.bbs.service.ReplyService;
+import com.example.bbs.utils.Authorization;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 /**
@@ -15,7 +18,6 @@ import java.util.List;
  * @since 2019-09-20 14:00:45
  */
 @RestController
-@RequestMapping("reply")
 public class ReplyController {
     /**
      * 服务对象
@@ -29,24 +31,18 @@ public class ReplyController {
      * @param id 回复id
      * @return
      */
-    @GetMapping("select/{id}")
+    @GetMapping("reply/select/{id}")
     public Information selectReplyById(@PathVariable Integer id) {
-        Information<Reply> information=new Information<>();
         if(id==null){
-            information.setMsg("回复id不能为空");
-            information.setStatus(406);
+            return Information.error(406,"回复编号不可为空");
         }else{
             Reply reply = replyService.selectReplyById(id);
             if(reply!=null) {
-                information.setData(reply);
-                information.setStatus(200);
-                information.setMsg("回复");
+                return Information.success(200,"回复",reply);
             }else {
-                information.setMsg("无");
-                information.setStatus(204);
+                return Information.error(204,"无内容");
             }
         }
-        return information;
     }
 
     /**
@@ -57,31 +53,24 @@ public class ReplyController {
      * @param size   行数
      * @return 回复列表
      */
-    @GetMapping("select/post/{id}/{page}/{size}")
-    public Information<Page> selectReplyByPostId(@PathVariable Integer id, @PathVariable Integer page,@PathVariable Integer size) {
-        Information<Page> information =new Information<>();
+    @GetMapping("reply/select/post/{id}/{page}/{size}")
+    public Information selectReplyByPostId(@PathVariable Integer id, @PathVariable Integer page,@PathVariable Integer size) {
         if(id==null){
-            information.setMsg("帖子id不能为空");
-            information.setStatus(406);
+            return Information.error(406,"关键信息不可为空");
         }else{
             //总页数
-            Integer totalPage=replyService.selectAllReplyCountByPostId(id)/page+1;
-
+            Integer totalPage=replyService.selectAllReplyCountByPostId(id)/size+1;
             Integer start=(page-1)*page;
             List<Reply> replies= replyService.selectReplyByPostId(id,start, size);
-            Page<Reply> pageObject=new Page<>();
-            pageObject.setDatas(replies);
-            pageObject.setTotalPage(totalPage);
+            Page<Reply> replyPage=new Page<>();
+            replyPage.setDatas(replies);
+            replyPage.setTotalPage(totalPage);
             if(replies!=null) {
-                information.setData(pageObject);
-                information.setMsg("回复列表");
-                information.setStatus(200);
+                return Information.success(200,"回复列表",replyPage);
             }else {
-                information.setMsg("无");
-                information.setStatus(204);
+                return Information.error(204,"无内容");
             }
         }
-        return information;
     }
 
     /**
@@ -92,31 +81,29 @@ public class ReplyController {
      * @param size   行数
      * @return 回复列表
      */
-    @GetMapping("select/user/{id}/{page}/{size}")
-    public Information<Page> selectReplyByUserId(@PathVariable Integer id, @PathVariable Integer page,@PathVariable Integer size) {
-        Information<Page> information =new Information<>();
+    @GetMapping("reply/select/user/{id}/{page}/{size}")
+    public Information selectReplyByUserId(@PathVariable Integer id, @PathVariable Integer page,@PathVariable Integer size) {
         if(id==null){
-            information.setMsg("用户id不能为空");
-            information.setStatus(406);
+            return Information.error(406,"关键信息不可为空");
         }else{
+            //总条数
+            Integer total=replyService.selectAllReplyCountByUserId(id);
+            if(total==null || total==0){
+                return Information.error(204,"无内容");
+            }
             //总页数
-            Integer totalPage=replyService.selectAllReplyCountByUserId(id)/size+1;
-
+            Integer totalPage=total/size+1;
             Integer start=(page-1)*size;
             List<Reply> replies= replyService.selectReplyByUserId(id,start, size);
-            Page<Reply> pageObject=new Page<>();
-            pageObject.setDatas(replies);
-            pageObject.setTotalPage(totalPage);
             if(replies!=null) {
-                information.setData(pageObject);
-                information.setMsg("回复列表");
-                information.setStatus(200);
+                Page<Reply> replyPage=new Page<>();
+                replyPage.setDatas(replies);
+                replyPage.setTotalPage(totalPage);
+                return Information.success(200,"回复列表",replyPage);
             }else {
-                information.setMsg("无");
-                information.setStatus(204);
+                return Information.error(204,"无内容");
             }
         }
-        return information;
     }
 
     /**
@@ -125,75 +112,53 @@ public class ReplyController {
      * @param reply 回复
      * @return 主键值
      */
-    @PostMapping("add")
-    public Information addReply(Reply reply, HttpSession session) {
-        Information<Integer> information =new Information<>();
-        Object admin_session = session.getAttribute("admin_session");
-        Object role_session = session.getAttribute("role_session");
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else if (reply.getUserId()==null && reply.getContent()!=null && reply.getPostId()==null && reply.getContent().trim()=="") {
-            msg = "必需信息为空";
-            status=406;
+    @PostMapping("reply/add")
+    public Information addReply(Reply reply,HttpServletRequest request) {
+        Integer userId=(Integer)request.getAttribute("userId");
+        reply.setUserId(userId);
+        if (reply.getUserId()==null && reply.getContent()!=null && reply.getPostId()==null && reply.getContent().trim().equals("")) {
+            return Information.error(406,"关键信息不可为空");
         }else{
             Integer replyId = replyService.addReply(reply);
-            information.setData(replyId);
             if (replyId==-3) {
-                msg = "创建用户不存在";
-                status=404;
-            }
-            else if (replyId==-5) {
-                msg = "所添加目标帖子不存在";
-                status=407;
-            }
-            else if(replyId==0){
-                msg="添加失败";
-                status=400;
-            }
-            else {
-                msg = "创建成功";
-                status=200;
+                return Information.error(404,"用户不存在");
+            }else if (replyId==-4) {
+                return Information.error(407,"帖子被禁用");
+            } else if (replyId==-5) {
+                return Information.error(407,"目标帖子不存在");
+            }else if(replyId==-6){
+                return Information.error(401,"用户在黑名单无权");
+            } else if(replyId==0){
+                return Information.error(400,"添加失败");
+            } else {
+                Reply newReply = replyService.selectReplyById(replyId);
+                return Information.success(200,"添加回复",newReply);
             }
         }
-        information.setMsg(msg);
-        information.setStatus(status);
-        return information;
     }
 
     /**
      * 删除回复
-     *
-     * @param id 回复Id
+     * @param replyId 回复Id
      * @return 结果
      */
-    @DeleteMapping("delete/{id}")
-    public Information deleteReplyById(@PathVariable Integer id,HttpSession session) {
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        Information<Integer> information =new Information<>();
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else{
-            Integer result = replyService.deleteReplyById(id);
-            if(result>0){
-                msg="删除成功";
-                status=200;
-            }
-            else {
-                msg = "删除失败";
-                status=400;
-            }
-            information.setData(result);
+    @GetMapping("reply/delete/{replyId}")
+    public Information deleteReplyById(@PathVariable Integer replyId,HttpServletRequest request) {
+        Reply reply = replyService.selectReplyById(replyId);
+        if(reply==null){
+            return Information.error(400,"删除失败");
         }
-        information.setStatus(status);
-        information.setMsg(msg);
-        return information;
+        Integer userId =(Integer) request.getAttribute("userId");
+        if(userId!=reply.getUserId()){
+            return Information.error(411,"非法操作");
+        }
+        Integer result = replyService.deleteReplyById(replyId);
+        if(result>0){
+            return Information.success("删除");
+        }
+        else {
+            return Information.error(400,"删除失败");
+        }
     }
 
     /**
@@ -202,29 +167,23 @@ public class ReplyController {
      * @param reply
      * @return
      */
-    @PutMapping("update/{id}")
-    public Information updateReply(@PathVariable Integer id, Reply reply, HttpSession session) {
-        Information<Integer> information=new Information<>();
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        if(admin_session==null && role_session==null){
-            information.setMsg("权限不足");
-            information.setStatus(401);
-        }else if(reply.getId()==null){
-            information.setMsg("回复id不能为空");
-            information.setStatus(403);
-        }else {
+    @PostMapping("reply/update")
+    public Information updateReply(Reply reply,HttpServletRequest request) {
+        if(reply.getId()==null){
+            return Information.error(406,"关键信息不可为空");
+        }else{
+            Integer userId=(Integer)request.getAttribute("userId");
+            Reply checkReply=replyService.selectReplyById(reply.getId());
+            if(userId!=checkReply.getUserId()){
+                return Information.error(411,"非法操作");
+            }
             Integer re=replyService.updateReply(reply);
             if(re==null || re==0){
-                information.setMsg("更新失败");
-                information.setStatus(400);
+                return Information.error(400,"更新失败");
             } else{
-                information.setMsg("更新成功");
-                information.setStatus(200);
+                Reply newReply = replyService.selectReplyById(reply.getId());
+                return Information.success(200,"更新成功",newReply);
             }
-            information.setData(re);
         }
-        return information;
     }
-
 }

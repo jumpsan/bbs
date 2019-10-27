@@ -1,11 +1,20 @@
 package com.example.bbs.controller;
 
+import com.example.bbs.annotation.AuthChecker;
+import com.example.bbs.annotation.RightChecker;
+import com.example.bbs.dto.PostDto;
 import com.example.bbs.entity.*;
 import com.example.bbs.service.PostService;
+import com.example.bbs.utils.Authorization;
+import com.example.bbs.utils.FileUtils;
+import com.example.bbs.utils.UploadUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +24,6 @@ import java.util.List;
  * @since 2019-09-20 14:00:32
  */
 @RestController
-@RequestMapping("post")
 public class PostController {
     /**
      * 服务对象
@@ -31,31 +39,29 @@ public class PostController {
      * @param size   行数
      * @return 帖子列表
      */
-    @GetMapping("select/section/{id}/{page}/{size}")
-    public Information<Page> selectPostBySectionId(@PathVariable Integer id, @PathVariable Integer page, @PathVariable Integer size) {
-        Information<Page> information =new Information<>();
+    @GetMapping("post/select/section/{id}/{page}/{size}")
+    public Information selectPostBySectionId(@PathVariable Integer id, @PathVariable Integer page, @PathVariable Integer size) {
         if(id==null){
-            information.setMsg("分区id不能为空");
-            information.setStatus(406);
+            return Information.error(406,"分区编号不能为空");
         }else{
+            Integer total=postService.selectAllPostBySectionId(id);
+            if(total==null || total==0){
+                return Information.error(204,"无内容");
+            }
             //总页数
-            Integer totalPage=postService.selectAllPostBySectionId(id)/size+1;
-
+            Integer totalPage=total/size+1;
             Integer start=(page-1)*size;
             List<Post> posts= postService.selectPostBySectionId(id,start, size);
-            Page<Post> pageObject=new Page<>();
-            pageObject.setDatas(posts);
-            pageObject.setTotalPage(totalPage);
             if(posts!=null) {
-                information.setData(pageObject);
-                information.setMsg("帖子列表");
-                information.setStatus(200);
+                Page<Post> postPage=new Page<>();
+                postPage.setDatas(posts);
+                postPage.setTotalPage(totalPage);
+                return Information.success(200,"帖子列表",postPage);
             }else {
-                information.setMsg("无");
-                information.setStatus(204);
+
+                return Information.error(204,"分页无内容返回");
             }
         }
-        return information;
     }
 
 
@@ -67,67 +73,61 @@ public class PostController {
      * @param size   行数
      * @return 帖子列表
      */
-    @GetMapping("select/user/{id}/{page}/{size}")
-    public Information<Page> selectPostByUserId(@PathVariable Integer id, @PathVariable Integer page, @PathVariable Integer size) {
-        Information<Page> information =new Information<>();
+    @GetMapping("post/select/user/{id}/{page}/{size}")
+    public Information selectPostByUserId(@PathVariable Integer id, @PathVariable Integer page, @PathVariable Integer size) {
         if(id==null){
-            information.setMsg("用户id不能为空");
-            information.setStatus(406);
+            return Information.error(406,"关键信息不可为空");
         }else{
+            Integer total=postService.selectAllPostByUserId(id);
+            if(total==null || total==0){
+                return Information.error(204,"无内容");
+            }
             //总页数
-            Integer totalPage=postService.selectAllPostByUserId(id)/size+1;
-
+            Integer totalPage=total/size+1;
             Integer start=(page-1)*size;
             List<Post> posts= postService.selectPostByUserId(id,start, size);
-            Page<Post> pageObject=new Page<>();
-            pageObject.setDatas(posts);
-            pageObject.setTotalPage(totalPage);
             if(posts!=null) {
-                information.setData(pageObject);
-                information.setMsg("帖子列表");
-                information.setStatus(200);
+                Page<Post> postPage=new Page<>();
+                postPage.setDatas(posts);
+                postPage.setTotalPage(totalPage);
+                return Information.success(200,"帖子列表",postPage);
             }else {
-                information.setMsg("无");
-                information.setStatus(204);
+                return Information.error(204,"分页无内容返回");
             }
         }
-        return information;
     }
 
-    /**
-     * 根据类型查找帖子
-     *
-     * @param type  类型编号，0：图片或文字，1：视频
-     * @param page 距离第一行的偏移量
-     * @param size   行数
-     * @return 帖子列表
-     */
-    @GetMapping("select/type/{type}/{page}/{size}")
-    public Information<Page> selectPostByType(@PathVariable Integer type, @PathVariable Integer page,@PathVariable Integer size) {
-        Information<Page> information =new Information<>();
-        if(type==null){
-            information.setMsg("类型不能为空");
-            information.setStatus(406);
-        }else{
-            //总页数
-            Integer totalPage=postService.selectAllPostByType(type)/size+1;
-
-            Integer start=(page-1)*size;
-            List<Post> posts= postService.selectPostByType(type,start, size);
-            Page<Post> pageObject=new Page<>();
-            pageObject.setDatas(posts);
-            pageObject.setTotalPage(totalPage);
-            if(posts!=null) {
-                information.setData(pageObject);
-                information.setMsg("帖子列表");
-                information.setStatus(200);
-            }else {
-                information.setMsg("无");
-                information.setStatus(204);
-            }
-        }
-        return information;
-    }
+//    /**
+//     * 根据类型查找帖子
+//     *
+//     * @param type  类型编号，0：图片或文字，1：视频
+//     * @param page 距离第一行的偏移量
+//     * @param size   行数
+//     * @return 帖子列表
+//     */
+//    @GetMapping("post/select/type/{type}/{page}/{size}")
+//    public Information selectPostByType(@PathVariable Integer type, @PathVariable Integer page,@PathVariable Integer size) {
+//        if(type==null){
+//            return Information.error(406,"关键信息不可为空");
+//        }else{
+//            Integer total=postService.selectAllPostByType(type);
+//            if(total==null || total==0){
+//                return Information.error(204,"分页无内容返回");
+//            }
+//            //总页数
+//            Integer totalPage=total/size+1;
+//            Integer start=(page-1)*size;
+//            List<Post> posts= postService.selectPostByType(type,start, size);
+//            if(posts!=null) {
+//                Page<Post> postPage=new Page<>();
+//                postPage.setDatas(posts);
+//                postPage.setTotalPage(totalPage);
+//                return Information.success(200,"帖子列表",postPage);
+//            }else {
+//                return Information.error(204,"分页无内容返回");
+//            }
+//        }
+//    }
 
     /**
      * 根据帖子id查询
@@ -135,25 +135,18 @@ public class PostController {
      * @param id 帖子id
      * @return 帖子
      */
-    @GetMapping("select/{id}")
-    public Information<Post> selectPostById(@PathVariable Integer id) {
-        Information<Post> information=new Information<>();
+    @GetMapping("post/select/{id}")
+    public Information selectPostByIdForUser(@PathVariable Integer id) {
         if(id==null){
-            information.setMsg("帖子id不能为空");
-            information.setStatus(406);
+            return Information.error(406,"关键信息不能为空");
         }else{
-            Post post = postService.selectPostById(id);
+            Post post = postService.selectPostByIdForUser(id);
             if(post!=null) {
-                information.setData(post);
-                information.setStatus(200);
-                information.setMsg("分区");
+                return Information.success(200,"帖子",post);
             }else {
-                information.setMsg("无");
-                information.setStatus(204);
+                return Information.error(204,"无");
             }
         }
-        return information;
-
     }
 
     /**
@@ -164,350 +157,589 @@ public class PostController {
      * @param size   行数
      * @return 帖子列表
      */
-    @GetMapping("select/title")
-    public Information<Page> selectPostByTile(String title, Integer page, Integer size) {
-        Information<Page> information =new Information<>();
+    @GetMapping("post/select/title/{title}/{page}/{size}")
+    public Information selectPostByTile(@PathVariable String title, @PathVariable Integer page, @PathVariable Integer size) {
         if(title==null){
-            information.setMsg("标题不能为空");
-            information.setStatus(406);
+            return Information.error(406,"关键信息不可为空");
         }else{
+            Integer total=postService.selectAllPostByTitle(title);
+            if(total==null || total==0){
+                return Information.error(204,"无记录返回");
+            }
             //总页数
-            Integer totalPage=postService.selectAllPostByTitle(title)/size+1;
-
+            Integer totalPage=total/size+1;
             Integer start=(page-1)*size;
             List<Post> posts= postService.selectPostByTitle(title, start, size);
-            Page<Post> pageObject=new Page<>();
-            pageObject.setDatas(posts);
-            pageObject.setTotalPage(totalPage);
             if(posts!=null) {
-                information.setData(pageObject);
-                information.setMsg("帖子列表");
-                information.setStatus(200);
+                Page<Post> postPage=new Page<>();
+                postPage.setDatas(posts);
+                postPage.setTotalPage(totalPage);
+                return Information.success(200,"帖子列表",postPage);
             }else {
-                information.setMsg("无");
-                information.setStatus(204);
+                return Information.error(204,"无记录返回");
             }
         }
-        return information;
     }
+
+
+
+
 
     /**
-     * 添加图片类型帖子
+     * 用户添加帖子，status只能为3,plateId必须为null
      * 0 文字、图片 1 视频
-     * @param post 帖子
+     * @param postDto 帖子传输
      * @return 结果
      */
-    @PostMapping("add/image")
-    public Information addImagePost(Post post, HttpSession session) {
-        Information<Integer> information =new Information<>();
-        Object admin_session = session.getAttribute("admin_session");
-        Object role_session = session.getAttribute("role_session");
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else if (post.getUserId()==null && post.getSectionId()!=null && post.getTitile()==null  && post.getStatus()!=null) {
-            msg = "关键信息缺失，无法添加";
-            status=406;
-        }else if(post.getVideo()!=null && post.getImage()==null){
-            msg="上传内容与帖子类型不符合";
-            status=409;
-        }else{
-            post.setType(0);
-            Integer postId = postService.addImagePost(post);
-            information.setData(postId);
-            if(postId==-6){
-                msg = "无权发帖";
-                status=401;
+    @PostMapping("post/add")
+    public Information addPost(PostDto postDto, HttpServletRequest request) {
+        Integer id=(Integer)request.getAttribute("userId");
+        Post post=postDto.getPost();
+        post.setUserId(id);
+        post.setPlateId(null);
+        //先审核
+        post.setStatus(3);
+        List<MultipartFile> multipartFiles = postDto.getMultipartFile();
+        boolean available=post.getUserId()==null || post.getContent()==null|| post.getSectionId()==null || post.getTitle()==null  || post.getType()==null;
+        if (available) {
+            return Information.error(406, "关键信息不可为空");
+        }
+        //视频只能有一个
+        if(post.getType()==1 && multipartFiles.size()>1){
+            return Information.error(409,"视频最多一个");
+        }
+        List<String> fileName=new ArrayList<>();
+        if(multipartFiles!=null){
+            for(MultipartFile file:multipartFiles){
+                Integer sameType = FileUtils.judgeType(file);
+                if(sameType!=post.getType())
+                    return Information.error(409,"类型不符合");
             }
-            else if (postId==-3) {
-                msg = "创建用户不存在";
-                status=404;
+            for(MultipartFile file:multipartFiles){
+                String newName = UploadUtils.getNewName(file);
+                fileName.add(newName);
             }
-            else if (postId==-4) {
-                msg = "分区被禁用，不允许操作";
-                status=405;
-            }else if (postId==-5) {
-                msg = "所添加目标分区不存在";
-                status=407;
-            } else if(postId==0){
-                msg="添加失败";
-                status=400;
-            }
-            else {
-                msg = "创建成功";
-                status=200;
+            if(post.getType()==0){
+                post.setImages(fileName);
+            }else{
+                post.setVideo(fileName.get(0));
             }
         }
-        information.setMsg(msg);
-        information.setStatus(status);
-        return information;
-    }
-
-    @PostMapping("add/word")
-    public Information addWordPost(Post post, HttpSession session) {
-        Information<Integer> information =new Information<>();
-        Object admin_session = session.getAttribute("admin_session");
-        Object role_session = session.getAttribute("role_session");
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else if (post.getUserId()==null && post.getSectionId()!=null && post.getTitile()==null  && post.getStatus()!=null) {
-            msg = "关键信息缺失，无法添加";
-            status=406;
-        }else if(post.getVideo()!=null && post.getImage()!=null){
-            msg="上传内容与帖子类型不符合";
-            status=409;
-        }else{
-            post.setType(0);
-            Integer postId = postService.addWordPost(post);
-            information.setData(postId);
-            if(postId==-6){
-                msg = "无权发帖";
-                status=401;
-            }
-            else if (postId==-3) {
-                msg = "创建用户不存在";
-                status=404;
-            }
-            else if (postId==-4) {
-                msg = "分区被禁用，不允许操作";
-                status=405;
-            }else if (postId==-5) {
-                msg = "所添加目标分区不存在";
-                status=407;
-            } else if(postId==0){
-                msg="添加失败";
-                status=400;
-            }
-            else {
-                msg = "创建成功";
-                status=200;
-            }
+        Integer postId = postService.addPost(post);
+        if(postId==-6){
+            return Information.error(401,"无权发帖");
         }
-        information.setMsg(msg);
-        information.setStatus(status);
-        return information;
-    }
-
-
-    @PostMapping("add/video")
-    public Information addVideoPost(Post post, HttpSession session) {
-        Information<Integer> information =new Information<>();
-        Object admin_session = session.getAttribute("admin_session");
-        Object role_session = session.getAttribute("role_session");
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else if (post.getUserId()==null && post.getSectionId()!=null && post.getTitile()==null  && post.getStatus()!=null) {
-            msg = "关键信息缺失，无法添加";
-            status=406;
-        }else if(post.getVideo()==null && post.getImage()!=null){
-            msg="上传内容与帖子类型不符合";
-            status=409;
-        }else{
-            post.setType(1);
-            Integer postId = postService.addVideoPost(post);
-            information.setData(postId);
-            if(postId==-6){
-                msg = "无权发帖";
-                status=401;
-            }
-            else if (postId==-3) {
-                msg = "创建用户不存在";
-                status=404;
-            }
-            else if (postId==-4) {
-                msg = "分区被禁用，不允许操作";
-                status=405;
-            }else if (postId==-5) {
-                msg = "所添加目标分区不存在";
-                status=407;
-            } else if(postId==0){
-                msg="添加失败";
-                status=400;
-            }
-            else {
-                msg = "创建成功";
-                status=200;
-            }
+        else if (postId==-3) {
+            return Information.error(404,"创建用户不存在");
+        } else if (postId==-4) {
+            return Information.error(405,"板块或分区被禁用");
+        }else if (postId==-5) {
+            return Information.error(407,"所添加的目标板块或分区不存在");
+        } else if(postId==0){
+            return Information.error(400,"创建失败");
         }
-        information.setMsg(msg);
-        information.setStatus(status);
-        return information;
+        else {
+            if(multipartFiles!=null){
+                for(int i=0;i<multipartFiles.size();i++){
+                    try {
+                        UploadUtils.uploadFile(request,multipartFiles.get(i),post.getType(),fileName.get(i));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return Information.error(410,"上传文件失败");
+                    }
+                }
+            }
+            Post newPost = postService.selectPostById(postId);
+            return Information.success(200,"发帖成功",newPost);
+        }
     }
-
-
 
 
     /**
      * 根据帖子id删除帖子
-     *
-     * @param id 帖子id
+     *用户管理员都可以
+     * @param postId 帖子编号
      * @return 结果
      */
-    @DeleteMapping("delete/{id}")
-    public Information deletePost(@PathVariable Integer id,HttpSession session) {
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        Information<Integer> information =new Information<>();
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else{
-            Integer result = postService.deletePostById(id);
-            if(result>0){
-                msg="删除成功";
-                status=200;
-            }
-            else {
-                msg = "删除失败";
-                status=400;
-            }
-            information.setData(result);
+    @GetMapping("post/delete/{postId}")
+    public Information deletePost(@PathVariable Integer postId,HttpServletRequest request) {
+        Integer userId=(Integer) request.getAttribute("userId");
+        Post checkPost=postService.selectPostById(postId);
+        if(!userId.equals(checkPost.getUserId())){
+            return Information.error(411,"非法操作");
         }
-        information.setStatus(status);
-        information.setMsg(msg);
-        return information;
+        Integer result = postService.deletePostById(postId);
+        if(result>0 ){
+            return Information.success("删除");
+        }else if(result==-5){
+            return Information.success(200,"帖子不存在",null);
+        }
+        else {
+            return Information.error(400,"删除失败");
+        }
     }
 
 
     /**
-     * 根据用户id删除帖子
-     *
-     * @param id 用户id
-     * @return 结果
-     */
-    @DeleteMapping("delete/user/{id}")
-    public Information deletePostByUserId(@PathVariable Integer id, HttpSession session) {
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        Information<Integer> information =new Information<>();
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else{
-            Integer result = postService.deletePostByUserId(id);
-            if(result>0){
-                msg="删除成功";
-                status=200;
-            }
-            else {
-                msg = "删除失败";
-                status=400;
-            }
-            information.setData(result);
-        }
-        information.setStatus(status);
-        information.setMsg(msg);
-        return information;
-    }
-
-    /**
-     * 根据分区id删除帖子
-     *
-     * @param id 分区id
-     * @return 结果
-     */
-    @DeleteMapping("delete/section/{id}")
-    public Information deletePostBySectionId(@PathVariable Integer id,HttpSession session) {
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        Information<Integer> information =new Information<>();
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else{
-            Integer result = postService.deletePostBySectionId(id);
-            if(result>0){
-                msg="删除成功";
-                status=200;
-            }
-            else {
-                msg = "删除失败";
-                status=400;
-            }
-            information.setData(result);
-        }
-        information.setStatus(status);
-        information.setMsg(msg);
-        return information;
-    }
-
-    /**
-     * 根据类型删除
-     *
-     * @param type 类型
-     * @return 结果
-     */
-    @DeleteMapping("delete/type/{type}")
-    public Information deletePostByType(@PathVariable Integer type,HttpSession session) {
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        Information<Integer> information =new Information<>();
-        String msg="";
-        Integer status=202;
-        if(admin_session==null && role_session==null){
-            msg="权限不足";
-            status=401;
-        }else{
-            Integer result = postService.deletePostByType(type);
-            if(result>0){
-                msg="删除成功";
-                status=200;
-            }
-            else {
-                msg = "删除失败";
-                status=400;
-            }
-            information.setData(result);
-        }
-        information.setStatus(status);
-        information.setMsg(msg);
-        return information;
-    }
-
-    /**
-     * 修改帖子内容
+     * 修改帖子内容,不能什么都不改
      * 只能修改title, content
-     * @param post 帖子
      * @return 结果
      */
-    @PutMapping("update/{id}")
-    public Information updatePost(@PathVariable Integer id,Post post, HttpSession session) {
-        Information<Integer> information=new Information<>();
-        Admin admin_session =(Admin) session.getAttribute("admin_session");
-        Role role_session=(Role)session.getAttribute("role_session");
-        if(admin_session==null && role_session==null){
-            information.setMsg("权限不足");
-            information.setStatus(401);
-        }else if(post.getId()==null){
-            information.setMsg("帖子id不能为空");
-            information.setStatus(403);
+    @PostMapping("post/update")
+    public Information updatePost(Post post,HttpServletRequest request) {
+        if(post.getId()==null){
+            return Information.error(411,"主键不可为空");
         }else {
+            Integer userId=(Integer)request.getAttribute("userId");
+            Post checkPost=postService.selectPostById(post.getId());
+            post.setStatus(checkPost.getStatus());//不可更改
+            if(!userId.equals(checkPost.getUserId())){
+                return Information.error(411,"非法操作");
+            }
             Integer re=postService.updatePost(post);
             if(re==null || re==0){
-                information.setMsg("更新失败");
-                information.setStatus(400);
+                return Information.error(400,"修改失败");
             }else{
-                information.setMsg("更新成功");
-                information.setStatus(200);
+                Post newPost = postService.selectPostById(post.getId());
+                return Information.success(200,"更新成功",newPost);
             }
-            information.setData(re);
         }
-        return information;
     }
 
 
+
+    /**
+     * 查找置顶帖子
+     * @param plateId 板块编号
+     * @return
+     */
+    @GetMapping("post/select/top/{plateId}")
+    public Information selectTopPostByPlateId(@PathVariable Integer plateId){
+        List<Post> posts = postService.selectTopPostByPlateId(plateId);
+        if(posts==null || posts.size()==0){
+            return Information.error(204,"无内容");
+        }
+        return Information.success(200,"置顶帖子",posts);
+    }
+
+    /**
+     * 查找公告帖子
+     * @param plateId 板块编号
+     * @return
+     */
+    @GetMapping("post/select/announce/{plateId}")
+    public Information selectAnnouncedPostByPlateId(@PathVariable Integer plateId){
+        List<Post> posts=postService.selectAnnouncedPostByPlateId(plateId);
+        if(posts==null || posts.size()==0){
+            return Information.error(204,"无内容");
+        }
+        return Information.success(200,"公告",posts);
+    }
+
+    /**
+     * 根据板块帖子最新时间查询
+     * @param plateId 板块
+     * @param page 页码
+     * @param size 行数
+     * @return
+     */
+    @GetMapping("post/select/plate/latest/{plateId}/{page}/{size}")
+    public Information selectPostInPlateByUpdateTimeForUser(@PathVariable Integer plateId,@PathVariable Integer page,@PathVariable Integer size){
+        Integer total=postService.selectPostCountByPlateId(plateId);
+        if(total==null || total==0){
+            return Information.error(204,"分页无内容");
+        }
+        Integer totalPage=total/size+1;
+        Integer start=(page-1)*size;
+        List<Post> posts=postService.selectPostInPlateByUpdateTime(plateId,start,size);
+        if(posts==null || posts.size()==0){
+            return Information.error(204,"分页无内容返回");
+        }
+        Page<Post> postPage=new Page<>();
+        postPage.setTotalPage(totalPage);
+        postPage.setDatas(posts);
+        return Information.success(200,"帖子列表",postPage);
+    }
+
+    /**
+     * 根据板块名和分区名查询帖子
+     * @param plateName 板块名
+     * @param sectionName 分区名
+     * @return 帖子
+     */
+    @GetMapping("manager/post/select/name/{plateName}/{sectionName}/{page}/{size}")
+    public Information selectPostByPlateNameAndSectionName(@PathVariable String plateName,@PathVariable String sectionName,@PathVariable Integer page,@PathVariable Integer size){
+        //总条数
+        Integer total=postService.selectPostCountByPlateNameAndSectionName(plateName,sectionName);
+        if(total==null || total==0){
+            return Information.error(204,"分页无内容返回");
+        }
+        //总页数
+        Integer totalPage=total/size+1;
+        //起始行数
+        Integer start=(page-1)*size;
+        List<Post> posts=postService.selectPostByPlateNameAndSectionName(plateName,sectionName,start,size);
+        if(posts==null || posts.size()<=0){
+            return Information.error(204,"分页无内容返回");
+        }
+        Page<Post> postPage=new Page<>();
+        postPage.setTotalPage(totalPage);
+        postPage.setDatas(posts);
+        return Information.success(200,"帖子分页",postPage);
+    }
+
+
+
+
+    /**
+     * 根据发布时间降序查找
+     * @param plateId
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("post/select/plate/sendTime/{plateId}/{page}/{size}")
+    public Information selectPostByPlateAndSendTime(@PathVariable Integer plateId,@PathVariable Integer page,@PathVariable Integer size){
+        Integer total=postService.selectPostCountByPlateId(plateId);
+        if(total==null || total==0){
+            return Information.error(204,"分页无内容");
+        }
+        Integer totalPage=total/size+1;
+        Integer start=(page-1)*size;
+        List<Post> posts=postService.selectPostInPlateBySendTime(plateId,start,size);
+        if(posts==null || posts.size()==0){
+            return Information.error(204,"分页无内容返回");
+        }
+        Page<Post> postPage=new Page<>();
+        postPage.setTotalPage(totalPage);
+        postPage.setDatas(posts);
+        return Information.success(200,"帖子列表",postPage);
+    }
+
+    /**
+     * 按照板块热度降序查找
+     * @param plateId
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("post/select/plate/hot/{plateId}/{page}/{size}")
+    public Information selectPostByPlateAndHot(@PathVariable Integer plateId,@PathVariable Integer page,@PathVariable Integer size){
+        Integer total=postService.selectPostCountByPlateId(plateId);
+        if(total==null || total==0){
+            return Information.error(204,"分页无内容");
+        }
+        Integer totalPage=total/size+1;
+        Integer start=(page-1)*size;
+        List<Post> posts=postService.selectPostInPlateByHot(plateId,start,size);
+        if(posts==null || posts.size()==0){
+            return Information.error(204,"分页无内容返回");
+        }
+        Page<Post> postPage=new Page<>();
+        postPage.setTotalPage(totalPage);
+        postPage.setDatas(posts);
+        return Information.success(200,"帖子列表",postPage);
+    }
+
+    /**
+     * 根据分区帖子最新时间查询
+     * @param sectionId 板块
+     * @param page 页码
+     * @param size 行数
+     * @return
+     */
+    @GetMapping("post/select/section/latest/{sectionId}/{page}/{size}")
+    public Information selectPostInSectionByUpdateTimeForUser(@PathVariable Integer sectionId,@PathVariable Integer page,@PathVariable Integer size){
+        if(sectionId==null){
+            return Information.error(406,"分区编号不能为空");
+        }else{
+            //总页数
+            Integer totalPage=postService.selectAllPostBySectionId(sectionId)/size+1;
+            Integer start=(page-1)*size;
+            List<Post> posts= postService.selectPostBySectionIdAndUpdateTime(sectionId,start, size);
+            if(posts!=null) {
+                Page<Post> postPage=new Page<>();
+                postPage.setDatas(posts);
+                postPage.setTotalPage(totalPage);
+                return Information.success(200,"帖子列表",postPage);
+            }else {
+
+                return Information.error(204,"分页无内容返回");
+            }
+        }
+    }
+
+    /**
+     * 根据分区发布时间降序查找
+     * @param sectionId
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("post/select/section/sendTime/{sectionId}/{page}/{size}")
+    public Information selectPostBySectionAndSendTime(@PathVariable Integer sectionId,@PathVariable Integer page,@PathVariable Integer size){
+        if(sectionId==null){
+            return Information.error(406,"分区编号不能为空");
+        }else{
+            //总页数
+            Integer totalPage=postService.selectAllPostBySectionId(sectionId)/size+1;
+            Integer start=(page-1)*size;
+            List<Post> posts= postService.selectPostBySectionIdAndSendTime(sectionId,start, size);
+            if(posts!=null) {
+                Page<Post> postPage=new Page<>();
+                postPage.setDatas(posts);
+                postPage.setTotalPage(totalPage);
+                return Information.success(200,"帖子列表",postPage);
+            }else {
+
+                return Information.error(204,"分页无内容返回");
+            }
+        }
+    }
+
+    /**
+     * 按照分区热度降序查找
+     * @param sectionId
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("post/select/section/hot/{sectionId}/{page}/{size}")
+    public Information selectPostBySectionAndHot(@PathVariable Integer sectionId,@PathVariable Integer page,@PathVariable Integer size){
+        if(sectionId==null){
+            return Information.error(406,"分区编号不能为空");
+        }else{
+            //总页数
+            Integer totalPage=postService.selectAllPostBySectionId(sectionId)/size+1;
+            Integer start=(page-1)*size;
+            List<Post> posts= postService.selectPostBySectionIdAndHot(sectionId,start, size);
+            if(posts!=null) {
+                Page<Post> postPage=new Page<>();
+                postPage.setDatas(posts);
+                postPage.setTotalPage(totalPage);
+                return Information.success(200,"帖子列表",postPage);
+            }else {
+
+                return Information.error(204,"分页无内容返回");
+            }
+        }
+    }
+
+
+    /**
+     * 选择分区需要审核的帖子
+     * @param sectionId 分区编号
+     * @param page 页码
+     * @param size 行数
+     * @return 审核帖子
+     */
+    @GetMapping("manager/post/select/section/check/{sectionId}/{page}/{size}")
+    public Information selectCheckPostsBySection(@PathVariable Integer sectionId,@PathVariable Integer page,@PathVariable Integer size){
+        if(sectionId==null || page==null || size==null){
+            return Information.error(406,"关键信息不可为空");
+        }else{
+            Integer total=postService.selectUncheckPostCountBySectionId(sectionId);
+            if(total==null || total==0){
+                return Information.error(204,"分页无内容返回");
+            }
+            Integer totalPage=total/size+1;
+            Integer start=(page-1)*size;
+            List<Post> posts = postService.selectUncheckPostBySectionId(sectionId, start, size);
+            if(posts==null){
+                return Information.error(204,"分页无内容返回");
+            }
+            Page<Post> postPage=new Page<>();
+            postPage.setDatas(posts);
+            postPage.setTotalPage(totalPage);
+            return Information.success(200,"审核帖子",postPage);
+        }
+    }
+
+    /**
+     * 选择板块需要审核的帖子
+     * @param plateId 分区编号
+     * @param page 页码
+     * @param size 行数
+     * @return 审核帖子
+     */
+    @GetMapping("manager/post/select/plate/check/{plateId}/{page}/{size}")
+    public Information selectCheckPostsByPlate(@PathVariable Integer plateId,@PathVariable Integer page,@PathVariable Integer size){
+        if(plateId==null || page==null || size==null){
+            return Information.error(406,"关键信息不可为空");
+        }else{
+            Integer total=postService.selectUncheckPostCountByPlateId(plateId);
+            if(total==null || total==0){
+                return Information.error(204,"分页无内容返回");
+            }
+            Integer totalPage=total/size+1;
+            Integer start=(page-1)*size;
+            List<Post> posts = postService.selectUncheckPostByPlateId(plateId, start, size);
+            if(posts==null){
+                return Information.error(204,"分页无内容返回");
+            }
+            Page<Post> postPage=new Page<>();
+            postPage.setDatas(posts);
+            postPage.setTotalPage(totalPage);
+            return Information.success(200,"审核帖子",postPage);
+        }
+    }
+
+
+//    /**
+//     * 管理员根据板块帖子最新时间查询需要审核的帖子
+//     * @param plateId 板块
+//     * @param page 页码
+//     * @param size 行数
+//     * @return
+//     */
+//    @GetMapping("manager/post/select/plate/latest/{plateId}/{page}/{size}")
+//    public Information selectPostInPlateByUpdateTimeForManager(@PathVariable Integer plateId,@PathVariable Integer page,@PathVariable Integer size){
+//        Integer total=postService.selectPostCountByPlateIdForManager(plateId);
+//        if(total==null || total==0){
+//            return Information.error(204,"分页无内容");
+//        }
+//        Integer totalPage=total/size+1;
+//        Integer start=(page-1)*size;
+//        List<Post> posts=postService.selectPostInPlateByUpdateTimeForManager(plateId,start,size);
+//        if(posts==null || posts.size()==0){
+//            return Information.error(204,"分页无内容返回");
+//        }
+//        Page<Post> postPage=new Page<>();
+//        postPage.setTotalPage(totalPage);
+//        postPage.setDatas(posts);
+//        return Information.success(200,"帖子列表",postPage);
+//    }
+
+    /**
+     * 管理员根据帖子id查询
+     *
+     * @param id 帖子id
+     * @return 帖子
+     */
+    @GetMapping("manager/post/select/{id}")
+    public Information selectPostByIdForManager(@PathVariable Integer id) {
+        if(id==null){
+            return Information.error(406,"关键信息不能为空");
+        }else{
+            Post post = postService.selectPostById(id);
+            if(post!=null) {
+                return Information.success(200,"帖子",post);
+            }else {
+                return Information.error(204,"无");
+            }
+        }
+    }
+
+
+    /**
+     * 管理员添加帖子，status为1，2，0
+     * 0 文字、图片 1 视频
+     *
+     * @param postDto 帖子传输
+     * @return 结果
+     */
+    @PostMapping("manager/post/add")
+    public Information addPostForManager(PostDto postDto, HttpServletRequest request) {
+        Post post=postDto.getPost();
+        List<MultipartFile> multipartFiles = postDto.getMultipartFile();
+        post.setSectionId(null);
+        Integer userId=(Integer)request.getAttribute("userId");
+        post.setUserId(userId);
+        boolean available= post.getContent()==null || post.getPlateId()==null || post.getStatus()==null|| post.getTitle()==null  || post.getType()==null;
+        if (available) {
+            return Information.error(406, "关键信息不可为空");
+        }
+        //视频只能有一个
+        if(post.getType()==1 && multipartFiles.size()>1){
+            return Information.error(409,"视频最多一个");
+        }
+        List<String> fileName=new ArrayList<>();
+        if(multipartFiles!=null){
+            for(MultipartFile file:multipartFiles){
+                Integer sameType = FileUtils.judgeType(file);
+                if(sameType!=post.getType())
+                    return Information.error(409,"类型不符合");
+            }
+            for(MultipartFile file:multipartFiles){
+                String newName = UploadUtils.getNewName(file);
+                fileName.add(newName);
+            }
+            if(post.getType()==0){
+                post.setImages(fileName);
+            }else{
+                post.setVideo(fileName.get(0));
+            }
+        }
+        Integer postId = postService.addPostForManager(post);
+        if(postId==-6){
+            return Information.error(401,"无权发帖");
+        }
+        else if (postId==-3) {
+            return Information.error(404,"创建用户不存在");
+        } else if (postId==-4) {
+            return Information.error(405,"板块或分区被禁用");
+        }else if (postId==-5) {
+            return Information.error(407,"所添加的板块或目标分区不存在");
+        } else if(postId==0){
+            return Information.error(400,"创建失败");
+        }
+        else {
+            if(multipartFiles!=null){
+                for(int i=0;i<multipartFiles.size();i++){
+                    try {
+                        UploadUtils.uploadFile(request,multipartFiles.get(i),post.getType(),fileName.get(i));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return Information.error(410,"上传文件失败");
+                    }
+                }
+            }
+            Post newPost = postService.selectPostById(postId);
+            return Information.success(200,"发帖成功",newPost);
+        }
+    }
+
+    /**
+     * 管理员根据帖子id删除帖子
+     *用户管理员都可以
+     * @param postId 帖子编号
+     * @return 结果
+     */
+    @GetMapping("manager/post/delete/{postId}")
+    public Information deletePostForManager(@PathVariable Integer postId) {
+        Integer result = postService.deletePostById(postId);
+        if(result>0 ){
+            return Information.success("删除");
+        }else if(result==-5){
+            return Information.success(200,"帖子不存在",null);
+        }
+        else {
+            return Information.error(400,"删除失败");
+        }
+    }
+
+    /**
+     * 管理员修改帖子内容,不能什么都不改
+     * 只能修改title, content.status
+     * @return 结果
+     */
+    @PostMapping("manager/post/update")
+    public Information updatePostForManager(Post post,HttpServletRequest request) {
+        if(post.getId()==null){
+            return Information.error(411,"主键不可为空");
+        }else {
+            Integer userId=(Integer)request.getAttribute("userId");
+            Post checkPost=postService.selectPostById(post.getId());
+            if(!userId.equals(checkPost.getUserId())){
+                return Information.error(411,"非法操作");
+            }
+            Integer re=postService.updatePost(post);
+            if(re==null || re==0){
+                return Information.error(400,"修改失败");
+            }else{
+                Post newPost = postService.selectPostById(post.getId());
+                return Information.success(200,"更新成功",newPost);
+            }
+        }
+    }
 }

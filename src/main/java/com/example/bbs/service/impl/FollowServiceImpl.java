@@ -1,7 +1,9 @@
 package com.example.bbs.service.impl;
 
 import com.example.bbs.dao.FollowDao;
+import com.example.bbs.dao.UserDao;
 import com.example.bbs.entity.Follow;
+import com.example.bbs.entity.Information;
 import com.example.bbs.entity.User;
 import com.example.bbs.service.FollowService;
 import org.springframework.stereotype.Service;
@@ -15,11 +17,12 @@ import java.util.List;
  * @author makejava
  * @since 2019-09-20 13:59:33
  */
-@Service("tFollowedService")
+@Service("followedService")
 public class FollowServiceImpl implements FollowService {
     @Resource
     private FollowDao followDao;
-
+    @Resource
+    private UserDao userDao;
     /**
      * 某个用户的关注列表
      *
@@ -49,13 +52,25 @@ public class FollowServiceImpl implements FollowService {
     /**
      * 添加关注记录
      *
-     * @param followed 关注
+     * @param follow 关注
      * @return 主键值
      */
     @Override
-    public Integer addFollow(Follow followed) {
-        followed = followDao.addFollow(followed);
-        return followed.getId();
+    public Integer addFollow(Follow follow) {
+        Integer followedId = follow.getFollowedId();
+        User user = userDao.selectUserById(followedId);
+        if(user==null){
+            return -3;
+        }
+        Follow checkFollow = followDao.selectAllCountByFollowIdAndFollowedId(follow.getFollowId(), followedId);
+        if(checkFollow!=null){
+            return -2;//重复关注
+        }
+        Integer result = followDao.addFollow(follow);
+        if(result<=0){
+            return -7;
+        }
+        return follow.getId();
     }
 
     /**
@@ -65,29 +80,50 @@ public class FollowServiceImpl implements FollowService {
      * @return 结果
      */
     @Override
-    public boolean deleteFollow(Follow follow) {
-        return followDao.deleteFollow(follow) > 0;
+    public Integer deleteFollow(Follow follow) {
+        return followDao.deleteFollow(follow);
     }
 
     /**
      * 根据关注者id删除
      *
-     * @param follow_id 关注者Id
+     * @param followId 关注者Id
      * @return 结果
      */
     @Override
-    public boolean deleteByFollowId(Integer follow_id) {
-        return followDao.deleteByFollowId(follow_id) > 0;
+    public Integer deleteByFollowId(Integer followId) {
+        return followDao.deleteByFollowId(followId);
     }
 
     /**
      * 根据被关注者id删除
      *
-     * @param followed_id 被关注者
+     * @param followedId 被关注者
      * @return 结果
      */
     @Override
-    public boolean deleteByFollowedId(Integer followed_id) {
-        return followDao.deleteByFollowedId(followed_id) > 0;
+    public Integer deleteByFollowedId(Integer followedId) {
+        return followDao.deleteByFollowedId(followedId) ;
+    }
+
+    @Override
+    public Integer selectAllCountByFollowId(Integer id) {
+        return followDao.selectAllCountByFollowId(id);
+    }
+
+    @Override
+    public Integer selectAllCountByFollowedId(Integer id) {
+        return followDao.selectAllCountByFollowedId(id);
+    }
+
+    /**
+     * 根据编号查询
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public Follow selectById(Integer id) {
+        return followDao.selectById(id);
     }
 }

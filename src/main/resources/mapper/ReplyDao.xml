@@ -8,58 +8,40 @@
         <result property="userId" column="user_id" jdbcType="INTEGER"/>
         <result property="postId" column="post_id" jdbcType="INTEGER"/>
         <result property="content" column="content" jdbcType="VARCHAR"/>
+        <collection property="comments" ofType="comment">
+            <id column="c_id" property="id"/>
+            <result column="reply_id" property="replyId"/>
+            <result column="to_username" property="toUsername"/>
+            <result column="c_user_id" property="userId"/>
+            <result column="comment_time" property="commentTime"/>
+            <result column="comment" property="comment"/>
+            <result column="to_user_id" property="toUserId"/>
+        </collection>
     </resultMap>
 
     <!--根据回复id查询-->
     <select id="selectReplyById" resultMap="TReplyMap">
-        select
-        reply_time, id, user_id, post_id, content
-        from bbs.t_reply
-        where id=#{id}
+        select  r.id,r.post_id,r.user_id,r.content,r.reply_time,c.id as c_id, reply_id, to_username, c.user_id as c_user_id, comment_time, comment, to_user_id
+        from t_comment as c right outer join  t_reply as r on c.reply_id=r.id
+        where r.id=#{id}
     </select>
 
     <!--根据帖子id查询-->
     <select id="selectReplyByPostId" resultMap="TReplyMap">
-        select
-        reply_time, id, user_id, post_id, content
-        from bbs.t_reply
-        where post_id=#{id}
+        select  r.id,r.post_id,r.user_id,r.content,r.reply_time,c.id as c_id, reply_id, to_username, c.user_id as c_user_id, comment_time, comment, to_user_id
+        from t_comment as c right outer join  t_reply as r on c.reply_id=r.id
+        where   post_id=#{id}
         limit #{start}, #{num}
     </select>
 
     <!--根据用户id查询-->
     <select id="selectReplyByUserId" resultMap="TReplyMap">
-        select
-        reply_time, id, user_id, post_id, content
-        from bbs.t_reply
-        where user_id=#{id}
+        select  r.id,r.post_id,r.user_id,r.content,r.reply_time,c.id as c_id, reply_id, to_username, c.user_id as c_user_id, comment_time, comment, to_user_id
+        from t_comment as c right outer join  t_reply as r on c.reply_id=r.id
+        where  r.user_id=#{id}
         limit #{start}, #{num}
     </select>
 
-
-    <!--通过实体作为筛选条件查询-->
-    <select id="queryAll" resultMap="TReplyMap">
-        select
-        reply_time, id, user_id, post_id, content
-        from bbs.t_reply
-        <where>
-            <if test="replyTime != null">
-                and reply_time = #{replyTime}
-            </if>
-            <if test="id != null">
-                and id = #{id}
-            </if>
-            <if test="userId != null">
-                and user_id = #{userId}
-            </if>
-            <if test="postId != null">
-                and post_id = #{postId}
-            </if>
-            <if test="content != null and content != ''">
-                and content = #{content}
-            </if>
-        </where>
-    </select>
 
     <!--新增所有列-->
     <insert id="addReply" keyProperty="id" useGeneratedKeys="true">

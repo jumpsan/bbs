@@ -24,8 +24,14 @@
         from bbs.t_admin
         where name=#{name} and password=#{password}
     </select>
-
-
+    <!--根据名称查找-->
+    <select id="selectAdminByName" resultMap="TAdminMap">
+        select id, name, image  from t_admin where name=#{name};
+    </select>
+    <!--根据名称删除-->
+    <delete id="deleteAdminByName" >
+        delete from t_admin where name=#{name}
+    </delete>
     <!--添加管理员-->
     <insert id="addAdmin" keyProperty="id" useGeneratedKeys="true">
         insert into bbs.t_admin(name, password)

@@ -59,12 +59,20 @@ public class CollectServiceImpl implements CollectService {
     @Override
     public Integer addCollect(Collect collect) {
         User user = userDao.selectUserById(collect.getUserId());
-        Post post = postDao.selectPostById(collect.getId());
+        Post post = postDao.selectPostById(collect.getPostId());
         if(user==null){
             return -3;
         }
         if(post==null)
             return -5;
+        Collect checkCollect = collectDao.selectCollectUserIdAndPostId(user.getId(), post.getId());
+        if(checkCollect!=null){
+            return -2;//添加重复
+        }
+        post.setCollectNum(post.getCollectNum()+1);
+        postDao.updatePost(post);
+        user.setCollectNum(user.getCollectNum()+1);
+        userDao.updateUserById(user);
         collectDao.addCollect(collect);
         return collect.getId();
     }
@@ -77,19 +85,18 @@ public class CollectServiceImpl implements CollectService {
      */
     @Override
     public Integer deleteCollect(Integer id) {
+        Collect collect = collectDao.selectCollectById(id);
+        Integer postId = collect.getPostId();
+        Post post = postDao.selectPostById(postId);
+        post.setCollectNum(post.getCollectNum()-1);
+        postDao.updatePost(post);
+        User user = userDao.selectUserById(collect.getUserId());
+        user.setCollectNum(user.getCollectNum()-1);
+        userDao.updateUserById(user);
         return this.collectDao.deleteCollect(id);
     }
 
-    /**
-     * 删除某个用户的所有收藏
-     *
-     * @param id 用户id
-     * @return 结果
-     */
-    @Override
-    public Integer deleteCollectByUserId(Integer id) {
-        return this.collectDao.deleteCollectByUserId(id);
-    }
+
 
     @Override
     public Integer selectAllCollectCountByUserId(Integer id) {
@@ -99,5 +106,22 @@ public class CollectServiceImpl implements CollectService {
     @Override
     public Integer selectAllCollectCountByPostId(Integer id) {
         return collectDao.selectAllCollectCountByPostId(id);
+    }
+
+    @Override
+    public Collect selectCollectById(Integer id) {
+        return collectDao.selectCollectById(id);
+    }
+
+    @Override
+    public Integer deleteCollectByUserIdAndPostId(Integer userId, Integer postId) {
+        Collect collect = collectDao.selectCollectByUserIdAndPostId(userId,postId);
+        Post post = postDao.selectPostById(postId);
+        post.setCollectNum(post.getCollectNum()-1);
+        postDao.updatePost(post);
+        User user = userDao.selectUserById(userId);
+        user.setCollectNum(user.getCollectNum()-1);
+        userDao.updateUserById(user);
+        return collectDao.deleteCollectByUserIdAndPostId(userId,postId);
     }
 }

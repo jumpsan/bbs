@@ -8,20 +8,35 @@
         <result property="followedId" column="followed_id" jdbcType="INTEGER"/>
     </resultMap>
 
+    <resultMap type="com.example.bbs.entity.User" id="TUserMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="registerTime" column="register_time" jdbcType="TIMESTAMP"/>
+        <result property="introduce" column="introduce" jdbcType="VARCHAR"/>
+        <result property="image" column="image" jdbcType="VARCHAR"/>
+        <result property="postNum" column="post_num" jdbcType="INTEGER"/>
+        <result property="replyNum" column="reply_num" jdbcType="INTEGER"/>
+        <result property="collectNum" column="collect_num" jdbcType="INTEGER"/>
+    </resultMap>
+
     <!--查询关注列表-->
-    <select id="selectByFollowId" resultType="User">
+    <select id="selectByFollowId" resultMap="TUserMap">
         select
-        *
+            *
         from t_user
-        where id in
+        where t_user.id in
         (select followed_id from t_follow where follow_id=#{follow_id})
         limit #{start},#{num}
     </select>
-
+    <!--根据用户编号删除-->
+    <delete id="deleteFollowByUserId">
+        delete from t_follow where follow_id=#{id} or followed_id=#{id}
+    </delete>
     <!--查询粉丝列表-->
-    <select id="selectByFollowedId" resultType="User">
+    <select id="selectByFollowedId" resultMap="TUserMap">
         select
-        *
+            *
         from t_user where id in
         (select follow_id from t_follow where followed_id=#{followed_id})
         limit #{start}, #{num}
@@ -31,22 +46,46 @@
     <!--新增关注-->
     <insert id="addFollow" keyProperty="id" useGeneratedKeys="true">
         insert into bbs.t_follow(follow_id, followed_id)
-        values (#{follow_id}, #{followed_id})
+        values (#{followId}, #{followedId})
     </insert>
 
+    <!--根据编号查询-->
+    <select id="selectById" resultMap="TFollowedMap">
+        select * from t_follow where id=#{id}
+    </select>
 
     <!--通过主键删除-->
     <delete id="deleteFollow">
-        delete from bbs.t_follow where followed_id=#{followedId} and follow_id=#{followId}
+        delete from bbs.t_follow
+        <where>
+            <if test="id!=null">
+                and id=#{id}
+            </if>
+            <if test="followedId!=null and followId!=null">
+                and (followed_id=#{followedId} and follow_id=#{followId})
+            </if>
+        </where>
     </delete>
 
     <!--根据关注者id删除 -->
     <delete id="deleteByFollowId">
-        delete from t_follow where follow_id=#{follow_id}
+        delete from t_follow where follow_id=#{followId}
     </delete>
     <!--根据被关注者id删除-->
     <delete id="deleteByFollowedId">
         delete from t_follow where followed_id=#{followed_id}
     </delete>
 
+
+    <select id="selectAllCountByFollowId" resultType="Integer">
+        select count(*) from t_follow where follow_id=#{id}
+    </select>
+
+    <select id="selectAllCountByFollowedId" resultType="Integer">
+        select count(*) from t_follow where followed_id=#{id}
+    </select>
+
+    <select id="selectAllCountByFollowIdAndFollowedId" resultType="follow">
+        select id, follow_id, followed_id, time from t_follow where followed_id=#{followedId} and follow_id=#{followId}
+    </select>
 </mapper>

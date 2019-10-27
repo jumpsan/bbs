@@ -26,7 +26,7 @@ public interface SectionService {
 
     Section selectSectionById(Integer id);
 
-    Section selectSectionByName(String name);
+    Section selectSectionByNameAndPlateId(String name,Integer plateId);
 
     Integer selectAllSectionByPlateId(Integer id);
 }

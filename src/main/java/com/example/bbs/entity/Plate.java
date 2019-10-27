@@ -1,7 +1,10 @@
 package com.example.bbs.entity;
 
+import lombok.Data;
+
 import java.util.Date;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * (TPlate)实体类
@@ -9,6 +12,7 @@ import java.io.Serializable;
  * @author makejava
  * @since 2019-09-26 17:09:26
  */
+@Data
 public class Plate implements Serializable {
     private static final long serialVersionUID = 790680273782087976L;
     //板块编号
@@ -23,54 +27,14 @@ public class Plate implements Serializable {
     private String describes;
     //0禁用1启动
     private Integer status;
+    //浏览数
+    private Integer viewNum;
+    //帖子数
+    private Integer postNum;
+    //分区
+    private List<Section> sections;
 
 
-    public Integer getId() {
-        return id;
-    }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-    public String getDescribes() {
-        return describes;
-    }
-
-    public void setDescribes(String descripe) {
-        this.describes = descripe;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
-    }
 
 }

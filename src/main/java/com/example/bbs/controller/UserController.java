@@ -1,13 +1,27 @@
 package com.example.bbs.controller;
 
+import com.example.bbs.annotation.AuthChecker;
+import com.example.bbs.annotation.RightChecker;
+import com.example.bbs.dto.UserDto;
 import com.example.bbs.entity.Information;
+import com.example.bbs.entity.Page;
 import com.example.bbs.entity.User;
 import com.example.bbs.service.RoleService;
 import com.example.bbs.service.UserService;
+import com.example.bbs.utils.Authorization;
+import com.example.bbs.utils.JjwtUtils;
+import com.example.bbs.utils.UploadUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.HandlerInterceptor;
 
 import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * (TUser)表控制层
@@ -16,7 +30,6 @@ import javax.servlet.http.HttpSession;
  * @since 2019-09-20 14:01:19
  */
 @RestController
-@RequestMapping("tUser")
 public class UserController {
     /**
      * 服务对象
@@ -24,8 +37,6 @@ public class UserController {
     @Resource
     private UserService userService;
 
-    @Resource
-    private RoleService roleService;
 
     /**
      * 根据账号查询
@@ -33,70 +44,180 @@ public class UserController {
      * @param id
      * @return
      */
-    @PostMapping("selectUserById")
-    public User selectUserById(Integer id) {
-        return userService.selectUserById(id);
+    @GetMapping("user/select/{id}")
+    public Information selectUserById(@PathVariable Integer id) {
+        if(id==null){
+            return Information.error(406,"关键信息不可为空");
+        }else {
+            User user = userService.selectUserById(id);
+            if(user==null){
+                return Information.error(204,"无内容");
+            }else{
+                user.setPassword("*");
+                return Information.success(200,"用户",user);
+            }
+        }
     }
 
     /**
-     * 根据账号密码查询
+     * 根据用户名密码查询
      *
-     * @param id       账号
+     * @param username 用户名
      * @param password 密码
      * @return 用户
      */
-    @PostMapping("selectUserByIdAndPassword")
-    public Information<User> selectUserByIdAndPassword(Integer id, String password, HttpSession session) {
-        User user = userService.selectUserByIdAndPassword(id, password);
+    @PostMapping("user/login")
+    public Information selectUserByNameAndPassword(String username, String password) {
+        User user = userService.selectUserByNameAndPassword(username, password);
         String msg = "";
         if (user == null) {
-            msg = "error";
+            msg = "用户名或密码错误";
+            return Information.error(202,"用户名或密码错误");
         } else {
-            msg = "success";
-            if(roleService.selectRoleByUserId(user.getId())==null){
-                session.setAttribute("role_session", user);
-            }else{
-                session.setAttribute("user_session",user);
+            try {
+                String token = JjwtUtils.createJWT(user.getId(), 15 * 60 * 1000);
+                return Information.success(200,"token",token);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return Information.error(500,"服务器错误");
             }
         }
-        Information<User> information =new Information<>();
-        information.setData(user);
-        information.setMsg(msg);
-        return information;
     }
 
     /**
      * 添加用户
-     *
-     * @param user 用户信息
+     * 返回新用户
+     * @param userDto 用户信息
      * @return 账号
      */
-    @PostMapping("addUser")
-    public Integer addUser(User user) {
-        return userService.addUser(user);
+    @PostMapping("user/register")
+    public Information addUser(UserDto userDto,HttpServletRequest request) {
+        User user = userDto.getUser();
+        MultipartFile multipartFile = userDto.getMultipartFile();
+        String newName="";
+        if(multipartFile!=null){
+             newName= UploadUtils.getNewName(multipartFile);
+            if(newName==null){
+                return Information.error(410,"文件上传失败");
+            }
+            user.setImage(newName);
+        }
+        if(user==null || user.getPassword()==null || user.getUsername()==null){
+            return Information.error(406,"关键信息不可为空");
+        }else{
+            Integer userId = userService.addUser(user);
+            if( userId>0){
+                if(multipartFile!=null){
+                    boolean result = false;
+                    try {
+                        result = UploadUtils.uploadFile(request,multipartFile, 2, newName);
+                        if(!result){
+                            return Information.error(410,"文件上传失败");
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        user.setImage(null);
+                        userService.updateUserById(user);
+                        return Information.error(410,"文件上传失败");
+                    }
+                    return Information.success("注册");
+
+                }else{
+                    User newUser = userService.selectUserById(userId);
+                    return Information.success(200,"用户主键",newUser);
+                }
+            }else if(userId==-2) {
+                return Information.error(402, "用户名不能重复");
+            }else{
+                return Information.error(400,"注册失败");
+            }
+        }
     }
 
     /**
      * 根据账号删除用户
      *
-     * @param id 账号
      * @return 结果
      */
-    @GetMapping("deleteUser")
-    public boolean deleteUser(Integer id) {
-        return userService.deleteUserById(id);
+    @GetMapping("user/delete")
+    public Information deleteUser(HttpServletRequest request) {
+        Integer userId=(Integer) request.getAttribute("userId");
+        Integer result = userService.deleteUserById(userId);
+        if(result>0){
+            return Information.success("删除");
+        }
+        else {
+            return Information.error(400,"删除失败");
+        }
     }
 
     /**
      * 修改用户信息
      *
-     * @param user 用户
+     * @param userDto 用户
      * @return 结果
      */
-    @PostMapping("updateUser")
-    public boolean updateUser(User user) {
-        return userService.updateUserById(user);
+    @PostMapping("user/update")
+    public Information updateUser(UserDto userDto,HttpServletRequest request) {
+        Integer id=(Integer)request.getAttribute("userId");
+        User user = userDto.getUser();
+        user.setId(id);
+        if(user.getId()==null){
+            return Information.error(406,"关键信息不可为空");
+        }else{
+            MultipartFile multipartFile = userDto.getMultipartFile();
+            String newName="";
+            if(multipartFile!=null){
+                newName= UploadUtils.getNewName(multipartFile);
+                if(newName==null){
+                    return Information.error(410,"文件上传失败");
+                }
+                user.setImage(newName);
+            }
+            Integer result = userService.updateUserById(user);
+            if(result>0){
+                if(!newName.equals("")){
+                    try {
+                        UploadUtils.uploadFile(request,multipartFile,3,newName);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return Information.error(410,"上传文件失败");
+                    }
+                }
+                User newUser = userService.selectUserById(user.getId());
+                return Information.success(200,"更新用户资料",newUser);
+            }else if(result==-2){
+                return Information.error(402,"用户名重复");
+            }
+            else {
+                return Information.error(400,"更新失败");
+            }
+        }
     }
 
+    /**
+     * 分页查询用户
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("manager/select/all/user/{page}/{size}")
+    public Information selectAllUser(@PathVariable Integer page,@PathVariable Integer size){
+        Integer total=userService.selectAllUserCount();
+        if(total==null || total==0){
+            return Information.error(204,"分页无内容");
+        }
+        Integer totalPage=total/size+1;
+        Integer start=(page-1)*size;
+        List<User> users= userService.selectAllUser(start, size);
+        if(users==null){
+            return Information.error(204,"分页无内容");
+        }else{
+            Page<User> userPage=new Page<>();
+            userPage.setDatas(users);
+            userPage.setTotalPage(totalPage);
+            return Information.success(200,"用户列表",userPage);
+        }
+    }
 
 }

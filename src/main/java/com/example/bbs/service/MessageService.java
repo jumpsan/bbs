@@ -19,4 +19,13 @@ public interface MessageService {
     List<Message> selectContent(Integer receive_id, Integer send_id, Integer start, Integer num);
 
     Integer addMessage(Message message);
+
+    Integer selectAllCountByTalkers(Integer receiveId, Integer sendId);
+
+    /**
+     * 根据主键查信息
+     * @param id
+     * @return
+     */
+    Message selectMessageById(Integer id);
 }

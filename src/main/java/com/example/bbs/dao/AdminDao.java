@@ -33,13 +33,29 @@ public interface AdminDao {
      * @param admin 管理员信息
      * @return 账号
      */
-    Admin addAdmin(Admin admin);
+    Integer addAdmin(Admin admin);
+    //废弃
+//    /**
+//     * 根据账号删除管理员
+//     *
+//     * @param id 账号
+//     * @return 结果
+//     */
+//    Integer deleteAdminById(Integer id);
 
     /**
-     * 根据账号删除管理员
-     *
-     * @param id 账号
-     * @return 结果
+     * 根据名称查找
+     * @param name 名称
+     * @return 管理员
      */
+    Admin selectAdminByName(String name);
+
+    /**
+     * 根据名称删除
+     * @param name 名称
+     * @return 影响记录条数
+     */
+    Integer deleteAdminByName(String name);
+
     Integer deleteAdminById(Integer id);
 }

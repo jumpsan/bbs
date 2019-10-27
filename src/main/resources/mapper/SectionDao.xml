@@ -21,6 +21,13 @@
         limit #{start},#{num}
     </select>
 
+    <!--根据板块编号查询，非分页-->
+    <select id="selectSectionByPlateIdWithoutPage" resultMap="TSectionMap">
+        select
+            id, name, plate_id, post_num, user_id, create_time,status
+        from bbs.t_section
+        where plate_id = #{id}
+    </select>
     <!--根据id查询-->
     <select id="selectSectionById" resultMap="TSectionMap">
         select
@@ -30,43 +37,18 @@
     </select>
 
     <!--根据名字查询-->
-    <select id="selectSectionByName" resultMap="TSectionMap">
+    <select id="selectSectionByNameAndPlateId" resultMap="TSectionMap">
         select
         id, name, plate_id, post_num, user_id, create_time,status
         from bbs.t_section
-        where name = #{name}
+        where plate_id=#{plateId} and name = #{name}
     </select>
 
     <!-- 查询某个板块下所有的分区数量   -->
     <select id="selectAllSectionByPlateId" resultType="Integer">
         select count(*) from t_section where plate_id=#{id}
     </select>
-    <!--通过实体作为筛选条件查询-->
-    <select id="queryAll" resultMap="TSectionMap">
-        select
-        id, name, plate_id, post_num, user_id, create_time,status
-        from bbs.t_section
-        <where>
-            <if test="id != null">
-                and id = #{id}
-            </if>
-            <if test="name != null and name != ''">
-                and name = #{name}
-            </if>
-            <if test="plateId != null">
-                and plate_id = #{plateId}
-            </if>
-            <if test="postNum != null">
-                and post_num = #{postNum}
-            </if>
-            <if test="userId != null">
-                and user_id = #{userId}
-            </if>
-            <if test="createTime != null">
-                and create_time = #{createTime}
-            </if>
-        </where>
-    </select>
+
 
     <!--新增所有列-->
     <insert id="addSection" keyProperty="id" useGeneratedKeys="true">
@@ -93,6 +75,9 @@
             <if test="createTime != null">
                 create_time = #{createTime},
             </if>
+            <if test="status!=null">
+                status=#{status}
+            </if>
         </set>
         where id = #{id}
     </update>
@@ -105,5 +90,7 @@
     <delete id="deleteSectionByPlateId">
         delete from t_section where plate_id=#{id}
     </delete>
-
+    <update id="enableSectionByPlateId">
+        update bbs.t_section set status=#{status} where plate_id=#{plateId}
+    </update>
 </mapper>

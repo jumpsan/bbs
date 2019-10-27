@@ -51,19 +51,21 @@ public class SectionServiceImpl implements SectionService {
      */
     @Override
     public Integer addSection(Section section) {
+
         String name=section.getName();
-        Section sec=selectSectionByName(name);
+        Section sec=selectSectionByNameAndPlateId(name,section.getPlateId());
         if(sec!=null)
             return -2;//名称重复
-        Plate plate  =plateDao.selectPlateById(section.getPlateId());
+        Plate plate  =plateDao.selectPlateByIdForManager(section.getPlateId());
         if(plate == null)
             return -5;//板块不存在
         if(plate.getStatus()==0){
             return -4;//该板块禁用
         }
         Admin admin = adminDao.selectAdminById(section.getUserId());
-        List<Role> roles = roleDao.selectRoleByUserId(section.getUserId());
-        if(admin==null && roles==null)
+        //判断是否是该版的版主
+        Role role = roleDao.selectRoleByUserIdAndPlateId(section.getUserId(), section.getPlateId());
+        if(admin==null && role==null)
             return -3;//管理员或版主不存在
         sectionDao.addSection(section);//返回影响行数
         return section.getId();//返回主键值
@@ -77,6 +79,11 @@ public class SectionServiceImpl implements SectionService {
      */
     @Override
     public Integer deleteSectionById(Integer id) {
+        Section section = sectionDao.selectSectionById(id);
+        Admin admin = adminDao.selectAdminById(section.getUserId());
+        Role role = roleDao.selectRoleByUserIdAndPlateId(section.getUserId(), section.getPlateId());
+        if(admin==null && role==null)
+            return -3;//管理员或版主不存在
         postDao.deletePostBySectionId(id);
         replyDao.deleteReplyBySectionId(id);
         approveDao.deleteApproveBySectionId(id);
@@ -92,8 +99,17 @@ public class SectionServiceImpl implements SectionService {
      */
     @Override
     public Integer updateSection(Section section) {
-        if(section.getName()!=null && selectSectionByName(section.getName())!=null){
+        Section originSection=sectionDao.selectSectionById(section.getId());
+        if(section.getName()!=null && selectSectionByNameAndPlateId(section.getName(),originSection.getPlateId())!=null){
             return -2;
+        }
+        Admin admin = adminDao.selectAdminById(section.getUserId());
+        Role role = roleDao.selectRoleByUserIdAndPlateId(section.getUserId(), originSection.getPlateId());
+        if(admin==null && role==null)
+            return -3;//管理员或版主不存在
+        Plate plate  =plateDao.selectPlateByIdForManager(originSection.getPlateId());
+        if(plate.getStatus()==0){
+            return -4;//该板块禁用
         }
         return sectionDao.updateSection(section) ;
     }
@@ -104,8 +120,8 @@ public class SectionServiceImpl implements SectionService {
      * @return
      */
     @Override
-    public Section selectSectionByName(String name) {
-            return sectionDao.selectSectionByName(name);
+    public Section selectSectionByNameAndPlateId(String name,Integer plateId) {
+            return sectionDao.selectSectionByNameAndPlateId(name,plateId);
     }
 
     /**

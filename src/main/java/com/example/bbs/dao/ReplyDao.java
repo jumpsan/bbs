@@ -41,4 +41,6 @@ public interface ReplyDao {
     Integer selectAllReplyCountByPostId(Integer id);
 
     Integer selectAllReplyCountByUserId(Integer id);
+
+    Integer deleteReplyByUserId(Integer id);
 }

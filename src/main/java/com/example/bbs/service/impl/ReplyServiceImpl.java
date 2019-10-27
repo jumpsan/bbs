@@ -1,10 +1,9 @@
 package com.example.bbs.service.impl;
 
-import com.example.bbs.dao.PostDao;
-import com.example.bbs.dao.UserDao;
+import com.example.bbs.dao.*;
+import com.example.bbs.entity.Blacklist;
 import com.example.bbs.entity.Post;
 import com.example.bbs.entity.Reply;
-import com.example.bbs.dao.ReplyDao;
 import com.example.bbs.entity.User;
 import com.example.bbs.service.ReplyService;
 import org.springframework.stereotype.Service;
@@ -18,7 +17,7 @@ import java.util.List;
  * @author makejava
  * @since 2019-09-20 14:00:45
  */
-@Service("tReplyService")
+@Service("replyService")
 public class ReplyServiceImpl implements ReplyService {
     @Resource
     private ReplyDao replyDao;
@@ -26,6 +25,10 @@ public class ReplyServiceImpl implements ReplyService {
     private UserDao userDao;
     @Resource
     private PostDao postDao;
+    @Resource
+    private BlacklistDao blacklistDao;
+    @Resource
+    private CommentDao commentDao;
 
     /**
      * 根据帖子id查询
@@ -63,17 +66,26 @@ public class ReplyServiceImpl implements ReplyService {
     public Integer addReply(Reply reply) {
         User user = userDao.selectUserById(reply.getUserId());
         Post post = postDao.selectPostById(reply.getPostId());
+        Blacklist blacklist = blacklistDao.selectListByUserIdAndPermission(reply.getUserId(), 0);
+        if(blacklist!=null){
+            return -6;
+        }
         if(user==null){
             return -3;
         }
         if(post==null){
             return -5;
         }
+        if(post.getStatus()==4){
+            return -4;
+        }
         //添加帖子的回复数
         Integer replyNum = post.getReplyNum();
         post.setReplyNum(++replyNum);
         postDao.updatePost(post);
         replyDao.addReply(reply);
+        user.setReplyNum(user.getReplyNum()+1);
+        userDao.updateUserById(user);
         return reply.getId();
     }
 
@@ -87,11 +99,24 @@ public class ReplyServiceImpl implements ReplyService {
     public Integer deleteReplyById(Integer id) {
         //删除帖子回复数
         Reply reply = replyDao.selectReplyById(id);
+        if(reply==null){
+            return -5;
+        }
+        Integer result = replyDao.deleteReplyById(id);
         Post post = postDao.selectPostById(reply.getPostId());
-        Integer replyNum = post.getReplyNum();
-        post.setReplyNum(--replyNum);
-        postDao.updatePost(post);
-        return replyDao.deleteReplyById(id) ;
+        if(post!=null){
+            Integer replyNum = post.getReplyNum();
+            post.setReplyNum(--replyNum);
+            postDao.updatePost(post);
+        }
+        User user = userDao.selectUserById(reply.getUserId());
+        if(user!=null){
+            user.setReplyNum(user.getReplyNum()-1);
+            userDao.updateUserById(user);
+        }
+        //删除楼中楼
+        commentDao.deleteCommentByReplyId(id);
+        return result;
     }
 
     /**
