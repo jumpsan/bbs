@@ -8,15 +8,17 @@
         <result property="sendTime" column="send_time" jdbcType="TIMESTAMP"/>
         <result property="receiveId" column="receive_id" jdbcType="INTEGER"/>
         <result property="sendId" column="send_id" jdbcType="INTEGER"/>
+        <association property="sendUser" javaType="user" column="send_id" select="com.example.bbs.dao.UserDao.selectUserById"/>
+        <association property="receiveUser" javaType="user" column="receive_id" select="com.example.bbs.dao.UserDao.selectUserById"/>
     </resultMap>
 
     <!--查询消息内容-->
     <select id="selectContent" resultMap="TMessageMap">
         select
-        *
+            *
         from t_message
-        where receive_id = #{receive_id} and send_id=#{send_id} order by send_time DESC
-        limit #{start},#{num}
+        where (receive_id = #{receiveId} and send_id=#{sendId}) or (receive_id = #{sendId} and send_id=#{receiveId}) order by send_time DESC
+        limit #{start},#{size}
     </select>
     <!--新增所有列-->
     <insert id="addMessage" keyProperty="id" useGeneratedKeys="true">
@@ -25,13 +27,13 @@
     </insert>
 
     <select id="selectAllCountByTalkers" resultType="Integer">
-        select count(*) from t_message where receive_id=#{receiveId} and send_id=#{sendId}
+        select count(*) from t_message where (receive_id = #{receiveId} and send_id=#{sendId}) or (receive_id = #{sendId} and send_id=#{receiveId})
     </select>
 
-    <!--根据用户编号删除-->
-    <delete id="deleteMessageByUserId">
-        delete from t_message where send_id=#{id} or receive_id=#{id}
-    </delete>
+<!--    &lt;!&ndash;根据用户编号删除&ndash;&gt;-->
+<!--    <delete id="deleteMessageByUserId">-->
+<!--        delete from t_message where send_id=#{id} or receive_id=#{id}-->
+<!--    </delete>-->
 
     <select id="selectMessageById" resultMap="TMessageMap">
         select * from t_message where id=#{id}

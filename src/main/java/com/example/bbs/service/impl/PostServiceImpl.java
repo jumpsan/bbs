@@ -40,6 +40,8 @@ public class PostServiceImpl implements PostService {
     private PostImageDao postImageDao;
     @Resource
     private AdminDao adminDao;
+    @Resource
+    private RoleDao roleDao;
     /**
      * 根据帖子id查询
      *
@@ -436,20 +438,23 @@ public class PostServiceImpl implements PostService {
     public Integer addPostForManager(Post post) {
         //title, user_id,image, section_id,  content,type
         Admin admin = adminDao.selectAdminById(post.getUserId());
-        if(admin==null){
+        Plate plate = plateDao.selectPlateByIdForManager(post.getPlateId());
+        Role role=roleDao.selectRoleByUserIdAndPlateId(post.getUserId(),plate.getId());
+        if(admin==null && role==null){
             return -3;//用户不存在
         }
-
-        Plate plate = plateDao.selectPlateByIdForManager(post.getPlateId());
         if(plate==null){
             return -5;
         }
         if(plate.getStatus()==0){
             return -4;//板块被禁用
         }
-        //用户发的帖子数量加一
-//        user.setPostNum(user.getPostNum()+1);
-//        userDao.updateUserById(user);
+        if(role!=null){
+            User user=userDao.selectUserById(post.getUserId());
+            //用户发的帖子数量加一
+            user.setPostNum(user.getPostNum()+1);
+            userDao.updateUserById(user);
+        }
         //板块帖子加一
         plate.setPostNum(plate.getPostNum()+1);
         plateDao.updatePlate(plate);

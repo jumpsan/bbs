@@ -8,4 +8,5 @@ import java.util.List;
 public class Page<T> {
     private List<T> datas;
     private Integer totalPage;
+    private Integer totalNum;
 }

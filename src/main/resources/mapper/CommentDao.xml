@@ -3,13 +3,24 @@
 <mapper namespace="com.example.bbs.dao.CommentDao">
 
     <resultMap type="com.example.bbs.entity.Comment" id="CommentMap">
-        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="id" column="comment_id" jdbcType="INTEGER"/>
         <result property="replyId" column="reply_id" jdbcType="INTEGER"/>
         <result property="toUsername" column="to_username" jdbcType="VARCHAR"/>
         <result property="userId" column="user_id" jdbcType="INTEGER"/>
         <result property="commentTime" column="comment_time" jdbcType="TIMESTAMP"/>
         <result property="comment" column="comment" jdbcType="VARCHAR"/>
         <result property="toUserId" column="to_user_id" jdbcType="INTEGER"/>
+        <association property="user" javaType="user">
+            <id property="id" column="user_id"/>
+            <result property="username" column="username"/>
+            <result property="password" column="password"/>
+            <result property="registerTime" column="register_time"/>
+            <result property="introduce" column="introduce"/>
+            <result property="image" column="image"/>
+            <result property="postNum" column="post_num"/>
+            <result property="replyNum" column="reply_num"/>
+            <result property="collectNum" column="collect_num"/>
+        </association>
     </resultMap>
 
     <!--添加回复-->
@@ -19,7 +30,27 @@
     </insert>
 
     <select id="selectCommentById" resultMap="CommentMap">
-        select * from t_comment where id=#{commentId}
+        SELECT
+            t_comment.id AS comment_id,
+            t_comment.reply_id,
+            t_comment.to_username,
+            t_comment.user_id,
+            t_comment.comment_time,
+            t_comment.`comment`,
+            t_comment.to_user_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num,
+            t_user.collect_num
+        FROM
+            t_comment
+                INNER JOIN t_user ON t_user.id = t_comment.user_id
+        where t_comment.id = #{commentId}
     </select>
 
     <delete id="deleteComment">
@@ -29,5 +60,30 @@
     <delete id="deleteCommentByReplyId">
         delete from t_comment where reply_id=#{id}
     </delete>
+
+    <!--根据回复编号查找楼中楼-->
+    <select id="selectCommentByReplyId" resultMap="CommentMap">
+        SELECT
+            t_comment.id AS comment_id,
+            t_comment.reply_id,
+            t_comment.to_username,
+            t_comment.user_id,
+            t_comment.comment_time,
+            t_comment.`comment`,
+            t_comment.to_user_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num,
+            t_user.collect_num
+        FROM
+            t_comment
+                INNER JOIN t_user ON t_user.id = t_comment.user_id
+        WHERE reply_id=#{replyId}
+    </select>
 
 </mapper>

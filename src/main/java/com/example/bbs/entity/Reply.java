@@ -14,6 +14,8 @@ public class Reply {
     private Integer postId;
     private String content;
     private List<Comment> comments;
+    private User user;
+    private Integer commentNum;
 
 
 }

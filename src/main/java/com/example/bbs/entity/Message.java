@@ -12,6 +12,8 @@ public class Message {
     private java.sql.Timestamp sendTime;
     private Integer receiveId;
     private Integer sendId;
+    private User sendUser;
+    private User receiveUser;
 
 
 }

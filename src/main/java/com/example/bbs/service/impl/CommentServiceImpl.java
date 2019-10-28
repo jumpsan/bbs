@@ -92,7 +92,12 @@ public class CommentServiceImpl implements CommentService {
         Integer result = commentDao.addComment(comment);
         if(result<=0)
             return -7;
-        //通知被回复的人
+        //TODO 通知被回复的人
+        reply.setCommentNum(reply.getCommentNum()+1);
+        replyDao.updateReply(reply);
+        //帖子回复数加一
+        post.setReplyNum(post.getReplyNum()+1);
+        postDao.updatePost(post);
         return comment.getId();
     }
 
@@ -115,6 +120,21 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public Integer deleteComment(Integer commentId) {
+        Comment comment=commentDao.selectCommentById(commentId);
+        if(comment!=null){
+            Reply reply=replyDao.selectReplyById(comment.getReplyId());
+            if(reply!=null){
+                reply.setCommentNum(reply.getCommentNum()-1);
+                replyDao.updateReply(reply);
+            }
+            Post post=postDao.selectPostById(reply.getPostId());
+            if(post!=null){
+                //回复数减一
+                post.setReplyNum(post.getReplyNum()-1);
+                postDao.updatePost(post);
+            }
+        }
+
         return commentDao.deleteComment(commentId);
     }
 }

@@ -7,45 +7,139 @@
         <result property="title" column="title" jdbcType="VARCHAR"/>
         <result property="userId" column="user_id" jdbcType="INTEGER"/>
         <result property="sectionId" column="section_id" jdbcType="INTEGER"/>
-        <result property="replyNum" column="reply_num" jdbcType="INTEGER"/>
+        <result property="replyNum" column="post_reply_num" jdbcType="INTEGER"/>
         <result property="viewNum" column="view_num" jdbcType="INTEGER"/>
         <result property="approveNum" column="approve_num" jdbcType="INTEGER"/>
-        <result property="collectNum" column="collect_num" jdbcType="INTEGER"/>
+        <result property="collectNum" column="post_collect_num" jdbcType="INTEGER"/>
         <result property="content" column="content" jdbcType="VARCHAR"/>
         <result property="postTime" column="post_time" jdbcType="TIMESTAMP"/>
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
         <result property="video" column="video" jdbcType="VARCHAR"/>
         <result property="type" column="type" jdbcType="INTEGER"/>
         <result property="status" column="status" jdbcType="INTEGER"/>
+        <association property="user" javaType="user">
+            <id property="id" column="user_id"/>
+            <result property="username" column="username"/>
+            <result property="password" column="password"/>
+            <result property="registerTime" column="register_time"/>
+            <result property="introduce" column="introduce"/>
+            <result property="image" column="image"/>
+            <result property="postNum" column="post_num"/>
+            <result property="replyNum" column="user_reply_num"/>
+            <result property="collectNum" column="user_collect_num"/>
+        </association>
         <collection property="images" ofType="java.lang.String">
             <constructor>
-                <arg column="image"/>
+                <arg column="t_post_image.image"/>
             </constructor>
         </collection>
-
     </resultMap>
 
     <!--查询单个-->
     <select id="selectPostById" resultMap="TPostMap">
-        select
-        t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where t_post.id = #{id}
 
     </select>
 
     <select id="selectPostByIdForUser" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where  t_post.id = #{id}  and status!=3
     </select>
 
     <!--查询分区帖子数据-->
     <select id="selectPostBySectionId" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where section_id=#{id} and status!=3
         limit #{start}, #{num}
     </select>
@@ -53,27 +147,111 @@
 
     <!--根据用户id查询帖子-->
     <select id="selectPostByUserId" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where user_id=#{id} and status!=3
         limit #{start}, #{num}
     </select>
 
     <!--根据类型查询帖子-->
     <select id="selectPostByType" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where type=#{type} and status!=3
         limit #{start}, #{num}
     </select>
 
     <!--根据标题模糊查询-->
     <select id="selectPostByTitle" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where title like concat('%',#{title},'%') and status!=3
 
     </select>
@@ -99,9 +277,37 @@
 
     <!--分区需要审核的帖子-->
     <select id="selectUncheckPostBySectionId" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where section_id=#{sectionId} and status=3
         limit #{start},#{size}
     </select>
@@ -118,17 +324,75 @@
 
     <!--查找置顶帖子-->
     <select id="selectTopPostByPlateId" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
+
+
         where plate_id=#{plateId} and status=1
     </select>
 
     <!--查找公告帖子-->
     <select id="selectAnnouncedPostByPlateId" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where plate_id=#{plateId} and status=2
     </select>
 
@@ -140,18 +404,74 @@
 
     <!--板块根据最新更新时间查找一个板块下帖子-->
     <select id="selectPostInPlateByUpdateTime" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where status!=3  and  section_id in (select id from t_section where t_section.plate_id=#{plateId})
         order by update_time DESC
         limit #{start},#{size}
     </select>
     <!--板块根据发布时间降序查找-->
     <select id="selectPostInPlateBySendTime" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where status!=3   and  section_id in (select id from t_section where t_section.plate_id=#{plateId})
         order by post_time DESC
         limit #{start},#{size}
@@ -159,19 +479,75 @@
 
     <!--板块根据热度查找-->
     <select id="selectPostInPlateByHot" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where status!=3  and  section_id in (select id from t_section where t_section.plate_id=#{plateId})
-        ORDER BY(view_num*0.3+reply_num*0.3+collect_num*0.1+approve_num*0.3) DESC
+        ORDER BY(view_num*0.3+post_reply_num*0.3+post_collect_num*0.1+approve_num*0.3) DESC
         limit #{start},#{size}
     </select>
 
     <!--分区根据最新时间-->
     <select id="selectPostBySectionIdAndUpdateTime" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where status!=3   and  section_id=#{sectionId}
         order by update_time DESC
         limit #{start},#{size}
@@ -179,9 +555,37 @@
 
     <!--分区根据分布时间-->
     <select id="selectPostBySectionIdAndSendTime" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where status!=3   and  section_id =#{sectionId}
         order by post_time DESC
         limit #{start},#{size}
@@ -189,11 +593,39 @@
 
     <!--分区根据热度-->
     <select id="selectPostBySectionIdAndHot" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
         where status!=3   and  section_id=#{sectionId}
-        ORDER BY(view_num*0.3+reply_num*0.3+collect_num*0.1+approve_num*0.3) DESC
+        ORDER BY(view_num*0.3+post_reply_num*0.3+post_collect_num*0.1+approve_num*0.3) DESC
         limit #{start},#{size}
     </select>
 
@@ -205,10 +637,38 @@
 
     <!--管理员根据最新更新时间查找一个板块下需要审核的帖子-->
     <select id="selectPostInPlateByUpdateTimeForManager" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
-        where status=3 and section_id in (select id from t_section where t_section.plate_id=#{plateId}) and i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
+        where status=3 and section_id in (select id from t_section where t_section.plate_id=#{plateId})
         order by update_time DESC
         limit #{start},#{size}
     </select>
@@ -278,9 +738,38 @@
     </select>
     <!--根据板块名和分区名帖子-->
     <select id="selectPostByPlateNameAndSectionName" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
+
         where section_id=
                         (select id from t_section where name=#{sectionName}  and plate_id=
                                                                                           (select id from t_plate where t_plate.name=#{plateName}))
@@ -288,9 +777,38 @@
     </select>
 
     <select id="selectUncheckPostByPlateId" resultMap="TPostMap">
-        select
-            t_post.*,i.image
-        from bbs.t_post left  outer join  t_post_image as i on i.post_id=t_post.id
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
+
         where status=3 and section_id in (select id from t_section where t_section.plate_id=#{plateId})
         limit #{start},#{size}
     </select>

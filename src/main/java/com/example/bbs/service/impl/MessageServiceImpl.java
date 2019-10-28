@@ -25,13 +25,13 @@ public class MessageServiceImpl implements MessageService {
     /**
      * 查看消息内容
      *
-     * @param receive_id 接收者
-     * @param send_id    发送者
+     * @param receiveId 接收者
+     * @param sendId    发送者
      * @return 消息列表
      */
     @Override
-    public List<Message> selectContent(Integer receive_id, Integer send_id, Integer start, Integer num) {
-        return messageDao.selectContent(receive_id, send_id, start, num);
+    public List<Message> selectContent(Integer receiveId, Integer sendId, Integer start, Integer size) {
+        return messageDao.selectContent(receiveId, sendId, start, size);
     }
 
     /**

@@ -56,6 +56,7 @@ public class PostController {
                 Page<Post> postPage=new Page<>();
                 postPage.setDatas(posts);
                 postPage.setTotalPage(totalPage);
+                postPage.setTotalNum(total);
                 return Information.success(200,"帖子列表",postPage);
             }else {
 
@@ -90,6 +91,7 @@ public class PostController {
                 Page<Post> postPage=new Page<>();
                 postPage.setDatas(posts);
                 postPage.setTotalPage(totalPage);
+                postPage.setTotalNum(total);
                 return Information.success(200,"帖子列表",postPage);
             }else {
                 return Information.error(204,"分页无内容返回");
@@ -174,6 +176,7 @@ public class PostController {
                 Page<Post> postPage=new Page<>();
                 postPage.setDatas(posts);
                 postPage.setTotalPage(totalPage);
+                postPage.setTotalNum(total);
                 return Information.success(200,"帖子列表",postPage);
             }else {
                 return Information.error(204,"无记录返回");
@@ -263,9 +266,9 @@ public class PostController {
      */
     @GetMapping("post/delete/{postId}")
     public Information deletePost(@PathVariable Integer postId,HttpServletRequest request) {
-        Integer userId=(Integer) request.getAttribute("userId");
+        Integer userId=(Integer)request.getAttribute("userId");
         Post checkPost=postService.selectPostById(postId);
-        if(!userId.equals(checkPost.getUserId())){
+        if(checkPost!=null && !userId.equals(checkPost.getUserId())){
             return Information.error(411,"非法操作");
         }
         Integer result = postService.deletePostById(postId);
@@ -358,6 +361,7 @@ public class PostController {
         Page<Post> postPage=new Page<>();
         postPage.setTotalPage(totalPage);
         postPage.setDatas(posts);
+        postPage.setTotalNum(total);
         return Information.success(200,"帖子列表",postPage);
     }
 
@@ -385,6 +389,7 @@ public class PostController {
         Page<Post> postPage=new Page<>();
         postPage.setTotalPage(totalPage);
         postPage.setDatas(posts);
+        postPage.setTotalNum(total);
         return Information.success(200,"帖子分页",postPage);
     }
 
@@ -413,6 +418,7 @@ public class PostController {
         Page<Post> postPage=new Page<>();
         postPage.setTotalPage(totalPage);
         postPage.setDatas(posts);
+        postPage.setTotalNum(total);
         return Information.success(200,"帖子列表",postPage);
     }
 
@@ -438,6 +444,7 @@ public class PostController {
         Page<Post> postPage=new Page<>();
         postPage.setTotalPage(totalPage);
         postPage.setDatas(posts);
+        postPage.setTotalNum(total);
         return Information.success(200,"帖子列表",postPage);
     }
 
@@ -453,14 +460,19 @@ public class PostController {
         if(sectionId==null){
             return Information.error(406,"分区编号不能为空");
         }else{
+            Integer total=postService.selectAllPostBySectionId(sectionId);
+            if(total==null || total==0){
+                return Information.error(204,"分页无内容");
+            }
             //总页数
-            Integer totalPage=postService.selectAllPostBySectionId(sectionId)/size+1;
+            Integer totalPage=total/size+1;
             Integer start=(page-1)*size;
             List<Post> posts= postService.selectPostBySectionIdAndUpdateTime(sectionId,start, size);
             if(posts!=null) {
                 Page<Post> postPage=new Page<>();
                 postPage.setDatas(posts);
                 postPage.setTotalPage(totalPage);
+                postPage.setTotalNum(total);
                 return Information.success(200,"帖子列表",postPage);
             }else {
 
@@ -481,14 +493,19 @@ public class PostController {
         if(sectionId==null){
             return Information.error(406,"分区编号不能为空");
         }else{
+            Integer total=postService.selectAllPostBySectionId(sectionId);
+            if(total==null || total==0){
+                return Information.error(204,"分页无内容");
+            }
             //总页数
-            Integer totalPage=postService.selectAllPostBySectionId(sectionId)/size+1;
+            Integer totalPage=total/size+1;
             Integer start=(page-1)*size;
             List<Post> posts= postService.selectPostBySectionIdAndSendTime(sectionId,start, size);
             if(posts!=null) {
                 Page<Post> postPage=new Page<>();
                 postPage.setDatas(posts);
                 postPage.setTotalPage(totalPage);
+                postPage.setTotalNum(total);
                 return Information.success(200,"帖子列表",postPage);
             }else {
 
@@ -509,14 +526,19 @@ public class PostController {
         if(sectionId==null){
             return Information.error(406,"分区编号不能为空");
         }else{
+            Integer total=postService.selectAllPostBySectionId(sectionId);
+            if(total==null || total==0){
+                return Information.error(204,"分页无内容");
+            }
             //总页数
-            Integer totalPage=postService.selectAllPostBySectionId(sectionId)/size+1;
+            Integer totalPage=total/size+1;
             Integer start=(page-1)*size;
             List<Post> posts= postService.selectPostBySectionIdAndHot(sectionId,start, size);
             if(posts!=null) {
                 Page<Post> postPage=new Page<>();
                 postPage.setDatas(posts);
                 postPage.setTotalPage(totalPage);
+                postPage.setTotalNum(total);
                 return Information.success(200,"帖子列表",postPage);
             }else {
 
@@ -551,6 +573,7 @@ public class PostController {
             Page<Post> postPage=new Page<>();
             postPage.setDatas(posts);
             postPage.setTotalPage(totalPage);
+            postPage.setTotalNum(total);
             return Information.success(200,"审核帖子",postPage);
         }
     }
@@ -580,6 +603,7 @@ public class PostController {
             Page<Post> postPage=new Page<>();
             postPage.setDatas(posts);
             postPage.setTotalPage(totalPage);
+            postPage.setTotalNum(total);
             return Information.success(200,"审核帖子",postPage);
         }
     }

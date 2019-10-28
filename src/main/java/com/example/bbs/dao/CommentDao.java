@@ -39,4 +39,10 @@ public interface CommentDao {
      * @return
      */
     Integer deleteCommentByReplyId(Integer id);
+
+    /**
+     * 根据回复编号查询
+     */
+    List<Comment> selectCommentByReplyId(Integer replyId);
+
 }

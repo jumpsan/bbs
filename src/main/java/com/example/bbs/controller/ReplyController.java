@@ -54,13 +54,18 @@ public class ReplyController {
         if(id==null){
             return Information.error(406,"关键信息不可为空");
         }else{
+            Integer total=replyService.selectAllReplyCountByPostId(id);
+            if(total==null || total==0){
+                return Information.error(204,"内容为空");
+            }
             //总页数
-            Integer totalPage=replyService.selectAllReplyCountByPostId(id)/size+1;
+            Integer totalPage=total/size+1;
             Integer start=(page-1)*size;
             List<Reply> replies= replyService.selectReplyByPostId(id,start, size);
             Page<Reply> replyPage=new Page<>();
             replyPage.setDatas(replies);
             replyPage.setTotalPage(totalPage);
+            replyPage.setTotalNum(total);
             if(replies!=null) {
                 return Information.success(200,"回复列表",replyPage);
             }else {
@@ -95,6 +100,7 @@ public class ReplyController {
                 Page<Reply> replyPage=new Page<>();
                 replyPage.setDatas(replies);
                 replyPage.setTotalPage(totalPage);
+                replyPage.setTotalNum(total);
                 return Information.success(200,"回复列表",replyPage);
             }else {
                 return Information.error(204,"无内容");

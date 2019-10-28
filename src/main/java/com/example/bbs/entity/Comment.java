@@ -1,6 +1,7 @@
 package com.example.bbs.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
 
 import java.util.Date;
 import java.io.Serializable;
@@ -11,6 +12,7 @@ import java.io.Serializable;
  * @author jj
  * @since 2019-10-26 14:54:23
  */
+@Data
 public class Comment implements Serializable {
     private static final long serialVersionUID = 199500634457047321L;
     //主键
@@ -28,62 +30,7 @@ public class Comment implements Serializable {
     private String comment;
     //回复对象的用户编号
     private Integer toUserId;
-
-
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getReplyId() {
-        return replyId;
-    }
-
-    public void setReplyId(Integer replyId) {
-        this.replyId = replyId;
-    }
-
-    public String getToUsername() {
-        return toUsername;
-    }
-
-    public void setToUsername(String toUsername) {
-        this.toUsername = toUsername;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public Date getCommentTime() {
-        return commentTime;
-    }
-
-    public void setCommentTime(Date commentTime) {
-        this.commentTime = commentTime;
-    }
-
-    public String getComment() {
-        return comment;
-    }
-
-    public void setComment(String comment) {
-        this.comment = comment;
-    }
-
-    public Integer getToUserId() {
-        return toUserId;
-    }
-
-    public void setToUserId(Integer toUserId) {
-        this.toUserId = toUserId;
-    }
+    //评论者
+    private  User user;
 
 }

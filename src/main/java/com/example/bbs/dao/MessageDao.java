@@ -11,7 +11,7 @@ import java.util.List;
  * @since 2019-09-20 13:59:51
  */
 public interface MessageDao {
-    List<Message> selectContent(Integer receive_id, Integer send_id, Integer start, Integer num);
+    List<Message> selectContent(Integer receiveId, Integer sendId, Integer start, Integer size);
 
     Integer addMessage(Message message);
 

@@ -39,6 +39,7 @@ public class MessageController {
             return Information.error(406,"关键信息不可为空");
         }else{
             Integer total= messageService.selectAllCountByTalkers(receiveId, id);
+            System.out.println(total);
             if(total==null || total==0){
                 return Information.success(204,"分页无内容返回",null);
             }else{
@@ -48,6 +49,7 @@ public class MessageController {
                 List<Message> messages = messageService.selectContent(receiveId, id, start, size);
                 messagePage.setDatas(messages);
                 messagePage.setTotalPage(totalPage);
+                messagePage.setTotalNum(total);
                 return Information.success(200,"消息列表",messagePage);
             }
         }
