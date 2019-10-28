@@ -1,5 +1,7 @@
 package com.example.bbs.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 import java.io.Serializable;
 
@@ -20,6 +22,7 @@ public class Comment implements Serializable {
     //回复者的编号
     private Integer userId;
     //回复时间
+    @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss ")
     private Date commentTime;
     //评论内容
     private String comment;

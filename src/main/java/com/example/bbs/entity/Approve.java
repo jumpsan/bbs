@@ -1,5 +1,7 @@
 package com.example.bbs.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 import java.io.Serializable;
 
@@ -16,6 +18,7 @@ public class Approve implements Serializable {
     //用户编号
     private Integer userId;
     //点赞时间
+    @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss ")
     private Date time;
     //帖子编号
     private Integer postId;

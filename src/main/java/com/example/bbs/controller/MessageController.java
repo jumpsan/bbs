@@ -62,8 +62,8 @@ public class MessageController {
     public Information addMessage(Integer receiveId,String content,HttpServletRequest request) {
         Message message=new Message();
         Integer id =(Integer) request.getAttribute("userId");
-        if(receiveId==null || id==null || content==null || content.length()<=0){
-            return Information.error(406,"关键信息不可为空");
+        if(receiveId==null || id==null || content==null || content.length()<=0 || content.trim().length()<15){
+            return Information.error(406,"关键信息不可为空,文字内容不得少于15");
         }else{
             message.setContent(content);
             message.setReceiveId(receiveId);

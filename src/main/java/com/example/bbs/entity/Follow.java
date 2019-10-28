@@ -1,5 +1,6 @@
 package com.example.bbs.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.util.Date;
@@ -20,7 +21,7 @@ public class Follow implements Serializable {
     private Integer followId;
     //被关注人用户编号
     private Integer followedId;
-    
+    @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss ")
     private Date time;
 
 

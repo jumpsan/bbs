@@ -84,8 +84,8 @@ public class SectionController {
     public Information addSection(Section section, HttpServletRequest request) {
         Integer userId=(Integer) request.getAttribute("userId");
         section.setUserId(userId);
-        if (section.getUserId()==null && section.getName()!=null && section.getPlateId()==null) {
-            return Information.error(406,"关键信息不可为空");
+        if (section.getUserId()==null || section.getName()==null || section.getPlateId()==null || section.getName().trim().length()<2) {
+            return Information.error(406,"关键信息不可为空,分区名不可少于2");
         }else{
             Integer sectionId = sectionService.addSection(section);
             if(sectionId==-2){
@@ -140,6 +140,9 @@ public class SectionController {
         }else {
             Integer userId=(Integer)request.getAttribute("userId");
             section.setUserId(userId);
+            if(section.getName()!=null && section.getName().trim().length()<2){
+                return Information.error(400,"分区名不可少于2");
+            }
             Integer re=sectionService.updateSection(section);
             if(re==null || re==0){
                 return Information.error(400,"更新失败");

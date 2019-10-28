@@ -76,11 +76,11 @@ public class CollectController {
             Integer totalPage=total/size+1;
             Integer start=(page-1)*size;
             List<User> users= collectService.selectCollectUserByPostId(id,start, size);
-            Page<User> pageObject=new Page<>();
-            pageObject.setDatas(users);
-            pageObject.setTotalPage(totalPage);
+            Page<User> userPage=new Page<>();
+            userPage.setDatas(users);
+            userPage.setTotalPage(totalPage);
             if(users!=null) {
-                return Information.success(200,"收藏者列表",pageObject);
+                return Information.success(200,"收藏者列表",userPage);
             }else {
                 return Information.success(204,"无记录",null);
             }

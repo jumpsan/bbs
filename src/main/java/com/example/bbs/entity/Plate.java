@@ -1,5 +1,6 @@
 package com.example.bbs.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.util.Date;
@@ -22,6 +23,7 @@ public class Plate implements Serializable {
     //创建人编号
     private Integer userId;
     //创建时间
+    @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss ")
     private Date createTime;
     //相关信息
     private String describes;

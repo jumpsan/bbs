@@ -1,6 +1,5 @@
 package com.example.bbs.controller;
 
-import com.example.bbs.annotation.AuthChecker;
 import com.example.bbs.entity.Admin;
 import com.example.bbs.entity.Information;
 import com.example.bbs.service.AdminService;
@@ -74,6 +73,10 @@ public class AdminController {
         if(admin.getName()==null || "".equals(admin.getName().trim())|| admin.getPassword()==null || "".equals(admin.getPassword().trim())){
             return Information.error(406,"关键信息不可为空");
         }else{
+            Integer pwdLength=admin.getPassword().trim().length();
+            if(pwdLength<6 || pwdLength>=12){
+                return Information.error(400,"密码长度必须在6-12之间");
+            }
             Integer result = adminService.addAdmin(admin);
             if(result>0){
                 admin.setPassword("*");

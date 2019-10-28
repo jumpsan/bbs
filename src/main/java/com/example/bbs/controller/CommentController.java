@@ -33,7 +33,7 @@ public class CommentController {
     public Information addComment(Comment comment, HttpServletRequest request){
         Integer userId=(Integer)request.getAttribute("userId");
         comment.setUserId(userId);
-        boolean condition=comment.getComment().equals("") || comment.getComment()==null || comment.getReplyId()==null;
+        boolean condition=comment.getComment().trim().equals("") || comment.getComment()==null || comment.getReplyId()==null;
         if(condition){
             return Information.error(406,"关键信息不可为空");
         }

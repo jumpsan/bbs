@@ -200,9 +200,9 @@ public class PostController {
         //先审核
         post.setStatus(3);
         List<MultipartFile> multipartFiles = postDto.getMultipartFile();
-        boolean available=post.getUserId()==null || post.getContent()==null|| post.getSectionId()==null || post.getTitle()==null  || post.getType()==null;
+        boolean available=post.getContent().trim().length()<15 || post.getUserId()==null || post.getContent()==null|| post.getSectionId()==null || post.getTitle()==null  || post.getType()==null;
         if (available) {
-            return Information.error(406, "关键信息不可为空");
+            return Information.error(406, "关键信息不可为空，文字内容不少于15");
         }
         //视频只能有一个
         if(post.getType()==1 && multipartFiles.size()>1){
@@ -645,9 +645,9 @@ public class PostController {
         post.setSectionId(null);
         Integer userId=(Integer)request.getAttribute("userId");
         post.setUserId(userId);
-        boolean available= post.getContent()==null || post.getPlateId()==null || post.getStatus()==null|| post.getTitle()==null  || post.getType()==null;
+        boolean available=post.getContent().trim().length()<15|| post.getContent()==null || post.getPlateId()==null || post.getStatus()==null|| post.getTitle()==null  || post.getType()==null;
         if (available) {
-            return Information.error(406, "关键信息不可为空");
+            return Information.error(406, "关键信息不可为空，文字内容不可少于15");
         }
         //视频只能有一个
         if(post.getType()==1 && multipartFiles.size()>1){
@@ -701,7 +701,7 @@ public class PostController {
 
     /**
      * 管理员根据帖子id删除帖子
-     *用户管理员都可以
+     * 用户管理员都可以
      * @param postId 帖子编号
      * @return 结果
      */
@@ -724,15 +724,10 @@ public class PostController {
      * @return 结果
      */
     @PostMapping("manager/post/update")
-    public Information updatePostForManager(Post post,HttpServletRequest request) {
+    public Information updatePostForManager(Post post) {
         if(post.getId()==null){
             return Information.error(411,"主键不可为空");
         }else {
-            Integer userId=(Integer)request.getAttribute("userId");
-            Post checkPost=postService.selectPostById(post.getId());
-            if(!userId.equals(checkPost.getUserId())){
-                return Information.error(411,"非法操作");
-            }
             Integer re=postService.updatePost(post);
             if(re==null || re==0){
                 return Information.error(400,"修改失败");

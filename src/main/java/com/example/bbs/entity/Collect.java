@@ -1,5 +1,7 @@
 package com.example.bbs.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 import java.io.Serializable;
 
@@ -17,7 +19,7 @@ public class Collect implements Serializable {
     private Integer postId;
     
     private Integer id;
-    
+    @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss ")
     private Date time;
 
 

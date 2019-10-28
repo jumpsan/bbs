@@ -238,8 +238,8 @@ public class PlateController {
     public Information addPlate(HttpServletRequest request, String name, String describes, Integer status) {
         Integer id=(Integer)request.getAttribute("userId");
         Plate plate=new Plate();
-        if (id==null || name==null || status==null) {
-            return Information.error(406,"关键信息不可为空");
+        if (id==null || name==null || status==null || name.trim().length()<2) {
+            return Information.error(406,"关键信息不可为空,板块名不得少于2");
         }else{
             plate.setDescribes(describes);
             plate.setName(name);
@@ -257,7 +257,7 @@ public class PlateController {
             }
             else {
                 Plate newPlate = plateService.selectPlateByIdForManager(plateId);
-                return Information.success(200,"创建",newPlate);
+                return Information.success(200,"新板块",newPlate);
             }
         }
     }

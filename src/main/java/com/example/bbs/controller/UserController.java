@@ -1,25 +1,16 @@
 package com.example.bbs.controller;
 
-import com.example.bbs.annotation.AuthChecker;
-import com.example.bbs.annotation.RightChecker;
 import com.example.bbs.dto.UserDto;
 import com.example.bbs.entity.Information;
 import com.example.bbs.entity.Page;
 import com.example.bbs.entity.User;
-import com.example.bbs.service.RoleService;
 import com.example.bbs.service.UserService;
-import com.example.bbs.utils.Authorization;
 import com.example.bbs.utils.JjwtUtils;
 import com.example.bbs.utils.UploadUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.HandlerInterceptor;
-
 import javax.annotation.Resource;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
@@ -30,6 +21,7 @@ import java.util.List;
  * @since 2019-09-20 14:01:19
  */
 @RestController
+//@CrossOrigin
 public class UserController {
     /**
      * 服务对象
@@ -69,13 +61,11 @@ public class UserController {
     @PostMapping("user/login")
     public Information selectUserByNameAndPassword(String username, String password) {
         User user = userService.selectUserByNameAndPassword(username, password);
-        String msg = "";
         if (user == null) {
-            msg = "用户名或密码错误";
             return Information.error(202,"用户名或密码错误");
         } else {
             try {
-                String token = JjwtUtils.createJWT(user.getId(), 15 * 60 * 1000);
+                String token = JjwtUtils.createJWT(user.getId(), 15 * 60 * 10000);
                 return Information.success(200,"token",token);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -87,45 +77,50 @@ public class UserController {
     /**
      * 添加用户
      * 返回新用户
-     * @param userDto 用户信息
+     * @param user 用户信息
      * @return 账号
      */
     @PostMapping("user/register")
-    public Information addUser(UserDto userDto,HttpServletRequest request) {
-        User user = userDto.getUser();
-        MultipartFile multipartFile = userDto.getMultipartFile();
-        String newName="";
-        if(multipartFile!=null){
-             newName= UploadUtils.getNewName(multipartFile);
-            if(newName==null){
-                return Information.error(410,"文件上传失败");
-            }
-            user.setImage(newName);
-        }
-        if(user==null || user.getPassword()==null || user.getUsername()==null){
+    public Information addUser(User user,HttpServletRequest request) {
+//        User user = userDto.getUser();
+//        MultipartFile multipartFile = userDto.getMultipartFile();
+//        String newName="";
+//        if(multipartFile!=null){
+//             newName= UploadUtils.getNewName(multipartFile);
+//            if(newName==null){
+//                return Information.error(410,"文件上传失败");
+//            }
+//            user.setImage(newName);
+//        }
+        if(user==null || user.getPassword()==null || user.getUsername()==null || user.getUsername().trim().equals("") || user.getPassword().trim().equals("")){
             return Information.error(406,"关键信息不可为空");
         }else{
+            //如果密码过长
+            if(user.getPassword().length()<6 || user.getPassword().length()>=12 || user.getUsername().trim().length()<3 ){
+                return Information.error(400,"密码长度必须在6-12之间;用户名长度不可少于3");
+            }
             Integer userId = userService.addUser(user);
             if( userId>0){
-                if(multipartFile!=null){
-                    boolean result = false;
-                    try {
-                        result = UploadUtils.uploadFile(request,multipartFile, 2, newName);
-                        if(!result){
-                            return Information.error(410,"文件上传失败");
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        user.setImage(null);
-                        userService.updateUserById(user);
-                        return Information.error(410,"文件上传失败");
-                    }
-                    return Information.success("注册");
+                User newUser = userService.selectUserById(userId);
+                return Information.success(200,"新用户",newUser);
+//                if(multipartFile!=null){
+//                    boolean result = false;
+//                    try {
+//                        result = UploadUtils.uploadFile(request,multipartFile, 2, newName);
+//                        if(!result){
+//                            return Information.error(410,"文件上传失败");
+//                        }
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                        user.setImage(null);
+//                        userService.updateUserById(user);
+//                        return Information.error(410,"文件上传失败");
+//                    }
+//                    return Information.success("注册");
+//
+//                }
 
-                }else{
-                    User newUser = userService.selectUserById(userId);
-                    return Information.success(200,"用户主键",newUser);
-                }
+    //
             }else if(userId==-2) {
                 return Information.error(402, "用户名不能重复");
             }else{
@@ -165,6 +160,10 @@ public class UserController {
         if(user.getId()==null){
             return Information.error(406,"关键信息不可为空");
         }else{
+            //如果密码过长
+            if(user.getPassword().length()<6 || user.getPassword().length()>=12 || user.getUsername().trim().length()<3 ){
+                return Information.error(400,"密码长度必须在6-12之间;用户名长度不可少于3");
+            }
             MultipartFile multipartFile = userDto.getMultipartFile();
             String newName="";
             if(multipartFile!=null){

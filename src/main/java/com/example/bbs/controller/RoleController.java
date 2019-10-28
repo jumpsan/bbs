@@ -87,7 +87,7 @@ public class RoleController {
                 return Information.error(404,"用户不存在");
             } else {
                 Role newRole = roleService.selectRoleById(result);
-                return Information.success(200,"主键",newRole);
+                return Information.success(200,"版主",newRole);
             }
         }
     }

@@ -1,5 +1,7 @@
 package com.example.bbs.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 import java.io.Serializable;
 
@@ -17,7 +19,7 @@ public class Blacklist implements Serializable {
     private Integer userId;
     //权限编号；0禁评论，1禁发帖
     private Integer permission;
-    
+    @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss ")
     private Date time;
 
 

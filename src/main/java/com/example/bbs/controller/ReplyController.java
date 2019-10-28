@@ -1,12 +1,8 @@
 package com.example.bbs.controller;
 
-import com.example.bbs.annotation.AuthChecker;
 import com.example.bbs.entity.*;
 import com.example.bbs.service.ReplyService;
-import com.example.bbs.utils.Authorization;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
@@ -60,7 +56,7 @@ public class ReplyController {
         }else{
             //总页数
             Integer totalPage=replyService.selectAllReplyCountByPostId(id)/size+1;
-            Integer start=(page-1)*page;
+            Integer start=(page-1)*size;
             List<Reply> replies= replyService.selectReplyByPostId(id,start, size);
             Page<Reply> replyPage=new Page<>();
             replyPage.setDatas(replies);
@@ -116,8 +112,9 @@ public class ReplyController {
     public Information addReply(Reply reply,HttpServletRequest request) {
         Integer userId=(Integer)request.getAttribute("userId");
         reply.setUserId(userId);
-        if (reply.getUserId()==null && reply.getContent()!=null && reply.getPostId()==null && reply.getContent().trim().equals("")) {
-            return Information.error(406,"关键信息不可为空");
+        System.out.println(userId);
+        if (reply.getUserId()==null || reply.getContent()==null || reply.getPostId()==null || reply.getContent().trim().length()<15) {
+            return Information.error(406,"关键信息不可为空,回复内容不得少于15");
         }else{
             Integer replyId = replyService.addReply(reply);
             if (replyId==-3) {
@@ -176,6 +173,9 @@ public class ReplyController {
             Reply checkReply=replyService.selectReplyById(reply.getId());
             if(userId!=checkReply.getUserId()){
                 return Information.error(411,"非法操作");
+            }
+            if(reply.getContent().trim().length()<15){
+                return Information.error(400,"文字内容长度不得少于15");
             }
             Integer re=replyService.updateReply(reply);
             if(re==null || re==0){

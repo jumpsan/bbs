@@ -1,5 +1,7 @@
 package com.example.bbs.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 import java.io.Serializable;
 
@@ -22,6 +24,7 @@ public class Section implements Serializable {
     //用户编号
     private Integer userId;
     //创建时间
+    @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss ")
     private Date createTime;
     //0禁用1启用
     private Integer status;
