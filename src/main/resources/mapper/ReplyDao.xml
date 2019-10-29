@@ -13,6 +13,18 @@
         <collection property="comments" ofType="comment" column="id" select="com.example.bbs.dao.CommentDao.selectCommentByReplyId"/>
     </resultMap>
 
+    <resultMap id="PostReply" type="com.example.bbs.entity.ReplyPost">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="replyTime" column="reply_time" jdbcType="TIMESTAMP"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="postId" column="post_id" jdbcType="INTEGER"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="commentNum" column="comment_num" jdbcType="INTEGER"/>
+        <association property="post" javaType="post" column="post_id" select="com.example.bbs.dao.PostDao.selectPostByIdForReply"/>
+        <collection property="comments" ofType="comment" column="id" select="com.example.bbs.dao.CommentDao.selectCommentByReplyId"/>
+    </resultMap>
+
+
     <!--根据回复id查询-->
     <select id="selectReplyById" resultMap="TReplyMap">
         SELECT

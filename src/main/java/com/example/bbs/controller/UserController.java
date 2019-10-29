@@ -59,13 +59,14 @@ public class UserController {
      * @return 用户
      */
     @PostMapping("user/login")
-    public Information selectUserByNameAndPassword(String username, String password) {
+    public Information selectUserByNameAndPassword(String username, String password,HttpServletRequest request) {
         User user = userService.selectUserByNameAndPassword(username, password);
         if (user == null) {
             return Information.error(202,"用户名或密码错误");
         } else {
             try {
                 String token = JjwtUtils.createJWT(user.getId(), 15 * 60 * 10000);
+                System.out.println(request.getSession().getServletContext() .getRealPath("/"));
                 return Information.success(200,"token",token);
             } catch (Exception e) {
                 e.printStackTrace();

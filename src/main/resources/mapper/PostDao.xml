@@ -35,6 +35,24 @@
         </collection>
     </resultMap>
 
+
+    <resultMap type="com.example.bbs.entity.Post" id="NormalPost">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="title" column="title" jdbcType="VARCHAR"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="sectionId" column="section_id" jdbcType="INTEGER"/>
+        <result property="replyNum" column="post_reply_num" jdbcType="INTEGER"/>
+        <result property="viewNum" column="view_num" jdbcType="INTEGER"/>
+        <result property="approveNum" column="approve_num" jdbcType="INTEGER"/>
+        <result property="collectNum" column="post_collect_num" jdbcType="INTEGER"/>
+        <result property="content" column="content" jdbcType="VARCHAR"/>
+        <result property="postTime" column="post_time" jdbcType="TIMESTAMP"/>
+        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+        <result property="video" column="video" jdbcType="VARCHAR"/>
+        <result property="type" column="type" jdbcType="INTEGER"/>
+        <result property="status" column="status" jdbcType="INTEGER"/>
+    </resultMap>
+
     <!--查询单个-->
     <select id="selectPostById" resultMap="TPostMap">
         SELECT
@@ -105,6 +123,29 @@
                 LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
                 LEFT JOIN t_user ON t_post.user_id = t_user.id
         where  t_post.id = #{id}  and status!=3
+    </select>
+
+    <!--查询回复时带的帖子-->
+    <select id="selectPostByIdForReply" resultMap="NormalPost">
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id
+        FROM
+            t_post
+        where id=#{id}
     </select>
 
     <!--查询分区帖子数据-->

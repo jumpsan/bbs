@@ -11,11 +11,11 @@ public class UploadUtils {
     public static boolean uploadFile(HttpServletRequest request, MultipartFile multipartFile, Integer type, String newName) throws IOException {
         boolean result = false;
         if (!multipartFile.isEmpty() && type != null && newName != null) {    //(1)判断是否为空
-            String filePath = request.getSession().getServletContext() .getRealPath("/") + "upload/";
+            //String filePath =  "upload/";
                 //获取服务器地址
-                String realPath = request.getSession().getServletContext() .getRealPath("/") + "upload/";
+                String realPath = "C:\\java\\";
                 if (type == 0) {
-                    realPath = realPath+"image/";  //(2) 存放路径
+                    realPath = realPath+"images/";  //(2) 存放路径
                 } else if (type == 1) {
                     realPath = realPath+"videos/";  //(2) 存放路径
                 } else {
@@ -59,5 +59,7 @@ public class UploadUtils {
             return true;//无此文件
         }
     }
+
+
 
 }
