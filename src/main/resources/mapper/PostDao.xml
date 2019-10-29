@@ -816,4 +816,50 @@
     <select id="selectUncheckPostCountByPlateId" resultType="Integer">
         select count(*) from t_post where section_id in(select id from t_section where t_section.plate_id=#{plateId})
     </select>
+
+    <!--首页帖子-->
+    <select id="selectIndexPagePost" resultMap="TPostMap">
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
+        where status!=3
+        ORDER BY(view_num*0.3+post_reply_num*0.3+post_collect_num*0.1+approve_num*0.3) DESC
+        limit #{start},#{size}
+    </select>
+
+    <select id="selectIndexPagePostCount" resultType="Integer">
+        SELECT
+            count(*)
+        FROM
+            t_post
+        where status!=3
+    </select>
 </mapper>

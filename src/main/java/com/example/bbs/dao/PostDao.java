@@ -177,4 +177,19 @@ public interface PostDao {
      * @return
      */
     List<Post> selectPostBySectionIdAndHot(Integer sectionId, Integer start, Integer size);
+
+    /**
+     * 查找首页帖子
+     * @param start
+     * @param size
+     * @return
+     */
+    List<Post> selectIndexPagePost(Integer start, Integer size);
+
+    /**
+     * 所有帖子的数量
+     * @return
+     */
+    Integer selectIndexPagePostCount();
+
 }

@@ -536,4 +536,26 @@ public class PostServiceImpl implements PostService {
     public List<Post> selectPostBySectionIdAndHot(Integer sectionId, Integer start, Integer size) {
         return postDao.selectPostBySectionIdAndHot(sectionId,start,size);
     }
+
+    /**
+     * 查找首页帖子
+     *
+     * @param start
+     * @param size
+     * @return
+     */
+    @Override
+    public List<Post> selectIndexPagePost(Integer start, Integer size) {
+        return postDao.selectIndexPagePost(start,size);
+    }
+
+    /**
+     * 查找所有帖子的数量
+     *
+     * @return
+     */
+    @Override
+    public Integer selectIndexPagePostCount() {
+        return postDao.selectIndexPagePostCount();
+    }
 }

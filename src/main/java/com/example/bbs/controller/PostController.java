@@ -761,4 +761,27 @@ public class PostController {
             }
         }
     }
+
+    /**
+     * 首页推荐的帖子
+     * @return 信息
+     */
+    @GetMapping("post/select/index/{page}/{size}")
+    public Information selectIndexPagePost(@PathVariable Integer page,@PathVariable Integer size){
+        Integer total=postService.selectIndexPagePostCount();
+        if(total==null || total==0){
+            return Information.error(204,"分页无内容返回");
+        }
+        Integer totalPage=total/size+1;
+        Integer start=(page-1)*size;
+        List<Post> posts=postService.selectIndexPagePost(start,size);
+        if(posts==null || posts.size()<=0){
+            return Information.error(400,"查询失败");
+        }
+        Page<Post> postPage=new Page<>();
+        postPage.setTotalNum(total);
+        postPage.setTotalPage(totalPage);
+        postPage.setDatas(posts);
+        return Information.success(200,"帖子列表",postPage);
+    }
 }

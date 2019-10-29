@@ -186,4 +186,18 @@ public interface PostService {
      * @return
      */
     List<Post> selectPostBySectionIdAndHot(Integer sectionId, Integer start, Integer size);
+
+    /**
+     * 查找首页帖子
+     * @param page
+     * @param size
+     * @return
+     */
+    List<Post> selectIndexPagePost(Integer page, Integer size);
+
+    /**
+     * 查找所有帖子的数量
+     * @return
+     */
+    Integer selectIndexPagePostCount();
 }

@@ -18,7 +18,7 @@ import java.util.List;
  * @author makejava
  * @since 2019-09-20 13:48:47
  */
-@Service("tCollectService")
+@Service("CollectService")
 public class CollectServiceImpl implements CollectService {
     @Resource
     private CollectDao collectDao;
