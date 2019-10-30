@@ -1,6 +1,7 @@
 package com.example.bbs.dao;
 
 import com.example.bbs.entity.Comment;
+import com.example.bbs.entity.CommentReply;
 import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
@@ -45,4 +46,17 @@ public interface CommentDao {
      */
     List<Comment> selectCommentByReplyId(Integer replyId);
 
+    /**
+     * 根据用户编号查询
+     * @param userId
+     * @return
+     */
+    List<CommentReply> selectCommentByUserId(Integer userId, Integer start, Integer size);
+
+    /**
+     * 根据用户编号查询评论数量
+     * @param userId
+     * @return
+     */
+    Integer selectCommentCountByUserId(Integer userId);
 }

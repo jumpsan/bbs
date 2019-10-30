@@ -34,24 +34,46 @@
             </constructor>
         </collection>
     </resultMap>
+<!--    所有需要审核帖子的数量-->
+    <select id="selectUncheckPostCount" resultType="Integer">
+        select count(*) from t_post where status=3
+    </select>
 
-
-    <resultMap type="com.example.bbs.entity.Post" id="NormalPost">
-        <id property="id" column="id" jdbcType="INTEGER"/>
-        <result property="title" column="title" jdbcType="VARCHAR"/>
-        <result property="userId" column="user_id" jdbcType="INTEGER"/>
-        <result property="sectionId" column="section_id" jdbcType="INTEGER"/>
-        <result property="replyNum" column="post_reply_num" jdbcType="INTEGER"/>
-        <result property="viewNum" column="view_num" jdbcType="INTEGER"/>
-        <result property="approveNum" column="approve_num" jdbcType="INTEGER"/>
-        <result property="collectNum" column="post_collect_num" jdbcType="INTEGER"/>
-        <result property="content" column="content" jdbcType="VARCHAR"/>
-        <result property="postTime" column="post_time" jdbcType="TIMESTAMP"/>
-        <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
-        <result property="video" column="video" jdbcType="VARCHAR"/>
-        <result property="type" column="type" jdbcType="INTEGER"/>
-        <result property="status" column="status" jdbcType="INTEGER"/>
-    </resultMap>
+<!--    所有需要审核的帖子-->
+    <select id="selectUncheckPost" resultMap="TPostMap">
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
+        WHERE status=3;
+    </select>
 
     <!--查询单个-->
     <select id="selectPostById" resultMap="TPostMap">
@@ -125,28 +147,28 @@
         where  t_post.id = #{id}  and status!=3
     </select>
 
-    <!--查询回复时带的帖子-->
-    <select id="selectPostByIdForReply" resultMap="NormalPost">
-        SELECT
-            t_post.id,
-            t_post.title,
-            t_post.user_id,
-            t_post.section_id,
-            t_post.reply_num,
-            t_post.view_num,
-            t_post.approve_num,
-            t_post.collect_num,
-            t_post.content,
-            t_post.post_time,
-            t_post.update_time,
-            t_post.video,
-            t_post.type,
-            t_post.`status`,
-            t_post.plate_id
-        FROM
-            t_post
-        where id=#{id}
-    </select>
+<!--    &lt;!&ndash;查询回复时带的帖子&ndash;&gt;-->
+<!--    <select id="selectPostByIdForReply" resultMap="NormalPost">-->
+<!--        SELECT-->
+<!--            t_post.id,-->
+<!--            t_post.title,-->
+<!--            t_post.user_id,-->
+<!--            t_post.section_id,-->
+<!--            t_post.reply_num,-->
+<!--            t_post.view_num,-->
+<!--            t_post.approve_num,-->
+<!--            t_post.collect_num,-->
+<!--            t_post.content,-->
+<!--            t_post.post_time,-->
+<!--            t_post.update_time,-->
+<!--            t_post.video,-->
+<!--            t_post.type,-->
+<!--            t_post.`status`,-->
+<!--            t_post.plate_id-->
+<!--        FROM-->
+<!--            t_post-->
+<!--        where id=#{id}-->
+<!--    </select>-->
 
     <!--查询分区帖子数据-->
     <select id="selectPostBySectionId" resultMap="TPostMap">
@@ -902,5 +924,41 @@
         FROM
             t_post
         where status!=3
+    </select>
+
+    <!--根据回复编号查询-->
+    <select id="selectPostByReplyIdForUser" resultMap="TPostMap">
+        SELECT
+            t_post.id,
+            t_post.title,
+            t_post.user_id,
+            t_post.section_id,
+            t_post.reply_num AS post_reply_num,
+            t_post.view_num,
+            t_post.approve_num,
+            t_post.collect_num AS post_collect_num,
+            t_post.content,
+            t_post.post_time,
+            t_post.update_time,
+            t_post.video,
+            t_post.type,
+            t_post.`status`,
+            t_post.plate_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num AS user_reply_num,
+            t_user.collect_num AS user_collect_num,
+            t_post_image.image,
+            t_post_image.post_id
+        FROM
+            t_post
+                LEFT JOIN t_post_image ON t_post.id = t_post_image.post_id
+                LEFT JOIN t_user ON t_post.user_id = t_user.id
+        where status!=3 and id=(select post_id from t_reply where t_reply.id=#{replyId})
     </select>
 </mapper>

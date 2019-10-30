@@ -1,12 +1,15 @@
 package com.example.bbs.controller;
 
 import com.example.bbs.entity.Comment;
+import com.example.bbs.entity.CommentReply;
 import com.example.bbs.entity.Information;
+import com.example.bbs.entity.Page;
 import com.example.bbs.service.CommentService;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * (Comment)表控制层
@@ -75,6 +78,29 @@ public class CommentController {
         }
     }
 
+    /**
+     * 根据用户编号查询
+     * @param userId
+     * @return
+     */
+    @GetMapping("select/user/{userId}/{page}/{size}")
+    public Information selectCommentByReplyId(@PathVariable Integer userId,@PathVariable Integer page,@PathVariable Integer size){
+        Integer total=commentService.selectCommentCountByUserId(userId);
+        if(total==null || total.equals(0)){
+            return  Information.error(204,"无内容");
+        }
+        Integer totalPage=total/size+1;
+        Integer start=(page-1)*size;
+        List<CommentReply> comments = commentService.selectCommentByUserId(userId,start,size);
+        if(comments==null || comments.size()<=0){
+            return  Information.error(204,"无内容");
+        }
+        Page<CommentReply> commentPage=new Page<>();
+        commentPage.setDatas(comments);
+        commentPage.setTotalPage(totalPage);
+        commentPage.setTotalNum(total);
+        return Information.success(200,"评论列表",commentPage);
+    }
 
 
 

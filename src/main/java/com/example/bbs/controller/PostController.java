@@ -610,6 +610,35 @@ public class PostController {
         }
     }
 
+    /**
+     * 所有需要审核的帖子
+     * @param page 页码
+     * @param size 行数
+     * @return 审核帖子
+     */
+    @GetMapping("manager/post/select/check/{page}/{size}")
+    public Information selectUnCheckPost(@PathVariable Integer page,@PathVariable Integer size){
+        if(page==null || size==null){
+            return Information.error(406,"关键信息不可为空");
+        }else{
+            Integer total=postService.selectUncheckPostCount();
+            if(total==null || total==0){
+                return Information.error(204,"分页无内容返回");
+            }
+            Integer totalPage=total/size+1;
+            Integer start=(page-1)*size;
+            List<Post> posts = postService.selectUncheckPost(start, size);
+            if(posts==null){
+                return Information.error(204,"分页无内容返回");
+            }
+            Page<Post> postPage=new Page<>();
+            postPage.setDatas(posts);
+            postPage.setTotalPage(totalPage);
+            postPage.setTotalNum(total);
+            return Information.success(200,"审核帖子",postPage);
+        }
+    }
+
 
 //    /**
 //     * 管理员根据板块帖子最新时间查询需要审核的帖子

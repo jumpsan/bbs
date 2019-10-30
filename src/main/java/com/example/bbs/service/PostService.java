@@ -200,4 +200,18 @@ public interface PostService {
      * @return
      */
     Integer selectIndexPagePostCount();
+
+    /**
+     * 所有需要审核的帖子数量
+     * @return
+     */
+    Integer selectUncheckPostCount();
+
+    /**
+     * 所有需要审核的帖子
+     * @param start
+     * @param size
+     * @return
+     */
+    List<Post> selectUncheckPost(Integer start, Integer size);
 }

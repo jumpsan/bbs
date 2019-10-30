@@ -558,4 +558,26 @@ public class PostServiceImpl implements PostService {
     public Integer selectIndexPagePostCount() {
         return postDao.selectIndexPagePostCount();
     }
+
+    /**
+     * 所有需要审核的帖子数量
+     *
+     * @return
+     */
+    @Override
+    public Integer selectUncheckPostCount() {
+        return postDao.selectUncheckPostCount();
+    }
+
+    /**
+     * 所有需要审核的帖子
+     *
+     * @param start
+     * @param size
+     * @return
+     */
+    @Override
+    public List<Post> selectUncheckPost(Integer start, Integer size) {
+        return postDao.selectUncheckPost(start,size);
+    }
 }

@@ -3,7 +3,7 @@
 <mapper namespace="com.example.bbs.dao.CommentDao">
 
     <resultMap type="com.example.bbs.entity.Comment" id="CommentMap">
-        <result property="id" column="comment_id" jdbcType="INTEGER"/>
+        <id property="id" column="comment_id" jdbcType="INTEGER"/>
         <result property="replyId" column="reply_id" jdbcType="INTEGER"/>
         <result property="toUsername" column="to_username" jdbcType="VARCHAR"/>
         <result property="userId" column="user_id" jdbcType="INTEGER"/>
@@ -21,6 +21,18 @@
             <result property="replyNum" column="reply_num"/>
             <result property="collectNum" column="collect_num"/>
         </association>
+    </resultMap>
+
+    <resultMap id="CommentReplyMap" type="com.example.bbs.entity.CommentReply">
+        <id property="id" column="id" jdbcType="INTEGER"/>
+        <result property="replyId" column="reply_id" jdbcType="INTEGER"/>
+        <result property="toUsername" column="to_username" jdbcType="VARCHAR"/>
+        <result property="userId" column="user_id" jdbcType="INTEGER"/>
+        <result property="commentTime" column="comment_time" jdbcType="TIMESTAMP"/>
+        <result property="comment" column="comment" jdbcType="VARCHAR"/>
+        <result property="toUserId" column="to_user_id" jdbcType="INTEGER"/>
+        <association property="replyPost" javaType="ReplyPost"  column="reply_id" select="com.example.bbs.dao.ReplyDao.selectReplyByIdForComment"/>
+        <association property="user" javaType="user" column="user_id" select="com.example.bbs.dao.UserDao.selectUserById"/>
     </resultMap>
 
     <!--添加回复-->
@@ -86,4 +98,12 @@
         WHERE reply_id=#{replyId}
     </select>
 
+    <select id="selectCommentByUserId" resultMap="CommentReplyMap">
+        select * from t_comment where user_id=#{userId} order by comment_time DESC limit #{start},#{size}
+    </select>
+
+    <select id="selectCommentCountByUserId" resultType="Integer">
+        select count(*)
+        from t_comment where user_id=#{userId};
+    </select>
 </mapper>

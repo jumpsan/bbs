@@ -13,20 +13,33 @@
         <collection property="comments" ofType="comment" column="id" select="com.example.bbs.dao.CommentDao.selectCommentByReplyId"/>
     </resultMap>
 
-    <resultMap id="PostReply" type="com.example.bbs.entity.ReplyPost">
+    <resultMap type="com.example.bbs.entity.ReplyPost" id="ReplyPost">
         <id property="id" column="id" jdbcType="INTEGER"/>
         <result property="replyTime" column="reply_time" jdbcType="TIMESTAMP"/>
         <result property="userId" column="user_id" jdbcType="INTEGER"/>
         <result property="postId" column="post_id" jdbcType="INTEGER"/>
         <result property="content" column="content" jdbcType="VARCHAR"/>
-        <result property="commentNum" column="comment_num" jdbcType="INTEGER"/>
-        <association property="post" javaType="post" column="post_id" select="com.example.bbs.dao.PostDao.selectPostByIdForReply"/>
-        <collection property="comments" ofType="comment" column="id" select="com.example.bbs.dao.CommentDao.selectCommentByReplyId"/>
+        <association property="user" javaType="user" column="user_id" select="com.example.bbs.dao.UserDao.selectUserById"/>
+        <association property="post" javaType="post" column="post_id" select="com.example.bbs.dao.PostDao.selectPostByIdForUser"/>
     </resultMap>
-
 
     <!--根据回复id查询-->
     <select id="selectReplyById" resultMap="TReplyMap">
+        SELECT
+            t_reply.reply_time,
+            t_reply.id,
+            t_reply.user_id,
+            t_reply.post_id,
+            t_reply.content,
+            t_reply.comment_num
+        FROM
+            t_reply
+
+        where t_reply.id=#{id}
+    </select>
+
+    <!--根据回复id查询,用于展示评论-->
+    <select id="selectReplyByIdForComment" resultMap="ReplyPost">
         SELECT
             t_reply.reply_time,
             t_reply.id,
@@ -57,7 +70,7 @@
     </select>
 
     <!--根据用户id查询-->
-    <select id="selectReplyByUserId" resultMap="TReplyMap">
+    <select id="selectReplyByUserId" resultMap="ReplyPost">
         SELECT
             r.reply_time,
             r.id,

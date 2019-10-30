@@ -137,4 +137,25 @@ public class CommentServiceImpl implements CommentService {
 
         return commentDao.deleteComment(commentId);
     }
+
+    /**
+     * 根据用户编号查询
+     *
+     * @param userId
+     * @return
+     */
+    @Override
+    public List<CommentReply> selectCommentByUserId(Integer userId,Integer start,Integer size) {
+        return commentDao.selectCommentByUserId(userId,start,size);
+    }
+
+    /**
+     * 根据用户编号查询评论数量
+     * @param userId
+     * @return
+     */
+    @Override
+    public Integer selectCommentCountByUserId(Integer userId){
+        return commentDao.selectCommentCountByUserId(userId);
+    }
 }

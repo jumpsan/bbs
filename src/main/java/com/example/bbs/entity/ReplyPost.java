@@ -13,9 +13,9 @@ public class ReplyPost {
     private Integer userId;
     private Integer postId;
     private String content;
-    private List<Comment> comments;
+    //用户
     private User user;
-    private Integer commentNum;
     //所回复的帖子
     private Post post;
+
 }

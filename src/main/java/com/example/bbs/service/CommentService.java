@@ -1,6 +1,8 @@
 package com.example.bbs.service;
 
 import com.example.bbs.entity.Comment;
+import com.example.bbs.entity.CommentReply;
+
 import java.util.List;
 
 /**
@@ -40,4 +42,19 @@ public interface CommentService {
      * @return 结果
      */
     Integer deleteComment(Integer commentId);
+
+    /**
+     * 根据用户编号查询
+     * @param userId
+     * @return
+     */
+    List<CommentReply> selectCommentByUserId(Integer userId, Integer start, Integer size);
+
+    /**
+     * 根据用户编号查询评论数量
+     * @param userId
+     * @return
+     */
+    Integer selectCommentCountByUserId(Integer userId);
+
 }
