@@ -1,6 +1,8 @@
 package com.example.bbs.service;
 
+import com.example.bbs.dto.UserForManagerDto;
 import com.example.bbs.entity.User;
+import com.example.bbs.entity.UserForManager;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -28,5 +30,33 @@ public interface UserService {
 
     Integer selectAllUserCount();
 
-    List<User> selectAllUser(Integer start, Integer size);
+    List<UserForManager> selectAllUser(Integer start, Integer size);
+
+    /**
+     * 黑名单用户数
+     * @return
+     */
+    Integer selectUserInBlacklistCount();
+
+    /**
+     * 黑名单用户
+     * @param start
+     * @param size
+     * @return
+     */
+    List<UserForManager> selectUserInBlacklist(Integer start, Integer size);
+
+    /**
+     * 管理员更新用户
+     * @param user
+     * @return
+     */
+    Integer updateUserByIdForManager(UserForManagerDto user);
+
+    /**
+     * 管理员根据编号查询用户
+     * @param id
+     * @return
+     */
+    UserForManager selectUserByIdForManager(Integer id);
 }

@@ -1,6 +1,7 @@
 package com.example.bbs.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
 
 import java.util.Date;
 import java.io.Serializable;
@@ -11,6 +12,7 @@ import java.io.Serializable;
  * @author makejava
  * @since 2019-09-26 17:06:28
  */
+@Data
 public class Blacklist implements Serializable {
     private static final long serialVersionUID = 163901558561449195L;
     
@@ -21,38 +23,10 @@ public class Blacklist implements Serializable {
     private Integer permission;
     @JsonFormat(pattern = "yyyy-MM-dd hh:mm:ss ")
     private Date time;
+    //用户资料
+    private User user;
 
 
-    public Integer getId() {
-        return id;
-    }
 
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public Integer getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
-    public Integer getPermission() {
-        return permission;
-    }
-
-    public void setPermission(Integer permission) {
-        this.permission = permission;
-    }
-
-    public Date getTime() {
-        return time;
-    }
-
-    public void setTime(Date time) {
-        this.time = time;
-    }
 
 }

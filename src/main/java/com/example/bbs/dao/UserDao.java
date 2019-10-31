@@ -1,6 +1,8 @@
 package com.example.bbs.dao;
 
+import com.example.bbs.dto.UserForManagerDto;
 import com.example.bbs.entity.User;
+import com.example.bbs.entity.UserForManager;
 
 import java.util.List;
 
@@ -28,5 +30,26 @@ public interface UserDao {
 
     Integer selectAllUserCount();
 
-    List<User> selectAllUser(Integer start, Integer size);
+    List<UserForManager> selectAllUser(Integer start, Integer size);
+
+    /**
+     * 黑名单用户数
+     * @return
+     */
+    Integer selectUserInBlacklistCount();
+
+    /**
+     * 黑名单
+     * @param start
+     * @param size
+     * @return
+     */
+    List<UserForManager> selectUserInBlacklist( Integer start, Integer size);
+
+    /**
+     * 管理员根据用户编号
+     * @param id
+     * @return
+     */
+    UserForManager selectUserByIdForManager(Integer id);
 }

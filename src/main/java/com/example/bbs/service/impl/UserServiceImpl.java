@@ -1,9 +1,8 @@
 package com.example.bbs.service.impl;
 
 import com.example.bbs.dao.*;
-import com.example.bbs.entity.Information;
-import com.example.bbs.entity.Post;
-import com.example.bbs.entity.User;
+import com.example.bbs.dto.UserForManagerDto;
+import com.example.bbs.entity.*;
 import com.example.bbs.service.UserService;
 import com.example.bbs.utils.UploadUtils;
 import org.springframework.stereotype.Service;
@@ -89,11 +88,14 @@ public class UserServiceImpl implements UserService {
     @Override
     public Integer deleteUserById(Integer id) {
         User user = userDao.selectUserById(id);
+        if(user==null){
+            return -3;
+        }
         postDao.deletePostByUserId(id);
         approveDao.deleteApproveByUserId(id);
         collectDao.deleteCollectByUserId(id);
         replyDao.deleteReplyByUserId(id);
-        messageDao.deleteMessageByUserId(id);
+        //messageDao.deleteMessageByUserId(id);
         blacklistDao.deleteBlackListByUserId(id);
         followDao.deleteFollowByUserId(id);
         roleDao.deleteRoleByUserId(id);
@@ -112,6 +114,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public Integer updateUserById(User user) {
         User checkUser = userDao.selectUserById(user.getId());
+        if(checkUser==null){
+            return -3;
+        }
         if(checkUser.getImage()!=null){
             UploadUtils.deleteFile(checkUser.getImage());
         }
@@ -125,6 +130,73 @@ public class UserServiceImpl implements UserService {
         return userDao.updateUserById(user);
     }
 
+    /**
+     * 修改用户信息
+     *
+     * @param user 用户需要修改的信息
+     * @return 结果
+     */
+    @Override
+    public Integer updateUserByIdForManager(UserForManagerDto user) {
+        User checkUser = userDao.selectUserById(user.getId());
+        if(checkUser==null){
+            return -3;
+        }
+        if(checkUser.getImage()!=null){
+            UploadUtils.deleteFile(checkUser.getImage());
+        }
+        if(!checkUser.getUsername().equals(user.getUsername())){
+            //检查用户名重复
+            User  checkName = userDao.selectUserByName(user.getUsername());
+            if(checkName!=null){
+                return -2;//用户名重复
+            }
+        }
+        if(user.getLimitPost()!=null && user.getLimitPost()==1){
+            Blacklist blacklist=new Blacklist();
+            blacklist.setPermission(1);
+            blacklist.setUserId(user.getId());
+            Integer result = blacklistDao.addBlackList(blacklist);
+            if(result<=0){
+                return -7;//修改黑名单失败
+            }
+        }
+        if(user.getLimitPost()!=null && user.getLimitPost()==0){
+            Integer result = blacklistDao.deleteBlackListByUserIdAndPermission(user.getId(), 1);
+            if(result<=0){
+                return -7;//修改黑名单失败
+            }
+        }
+        if(user.getLimitReply()!=null && user.getLimitReply()==0){
+            Integer result = blacklistDao.deleteBlackListByUserIdAndPermission(user.getId(), 0);
+            if(result<=0){
+                return -7;//修改黑名单失败
+            }
+        }
+        if(user.getLimitReply()!=null && user.getLimitReply()==1){
+            Blacklist blacklist=new Blacklist();
+            blacklist.setPermission(0);
+            blacklist.setUserId(user.getId());
+            Integer result = blacklistDao.addBlackList(blacklist);
+            if(result<=0){
+                return -7;//修改黑名单失败
+            }
+        }
+        user.setId(checkUser.getId());
+        return userDao.updateUserById(user);
+    }
+
+    /**
+     * 管理员根据编号查询用户
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public UserForManager selectUserByIdForManager(Integer id) {
+        return userDao.selectUserByIdForManager(id);
+    }
+
     @Override
     public Integer selectAllUserCount() {
         return userDao.selectAllUserCount();
@@ -132,8 +204,30 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> selectAllUser(Integer start, Integer size) {
+    public List<UserForManager> selectAllUser(Integer start, Integer size) {
         return userDao.selectAllUser(start,size);
+    }
+
+    /**
+     * 黑名单用户数
+     *
+     * @return
+     */
+    @Override
+    public Integer selectUserInBlacklistCount() {
+        return userDao.selectUserInBlacklistCount();
+    }
+
+    /**
+     * 黑名单用户
+     *
+     * @param start
+     * @param size
+     * @return
+     */
+    @Override
+    public List<UserForManager> selectUserInBlacklist( Integer start, Integer size) {
+        return userDao.selectUserInBlacklist(start,size);
     }
 
 

@@ -3,9 +3,11 @@
 <mapper namespace="com.example.bbs.dao.BlacklistDao">
 
     <resultMap type="com.example.bbs.entity.Blacklist" id="TBlacklistMap">
-        <result property="id" column="id" jdbcType="INTEGER"/>
+        <id property="id" column="id" jdbcType="INTEGER"/>
         <result property="userId" column="user_id" jdbcType="INTEGER"/>
         <result property="permission" column="permission" jdbcType="INTEGER"/>
+        <result property="time" column="time" jdbcType="TIMESTAMP"/>
+        <association property="user" javaType="user" column="user_id" select="com.example.bbs.dao.UserDao.selectUserByIdForManager"/>
     </resultMap>
 
 

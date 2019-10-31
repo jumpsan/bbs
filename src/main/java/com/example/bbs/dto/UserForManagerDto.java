@@ -1,11 +1,10 @@
 package com.example.bbs.dto;
 
-import com.example.bbs.entity.User;
+import com.example.bbs.entity.UserForManager;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
 @Data
-public class UserDto extends User{
-    //private User user;
+public class UserForManagerDto extends UserForManager {
     private MultipartFile multipartFile;
 }

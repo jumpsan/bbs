@@ -14,6 +14,20 @@
         <result property="collectNum" column="collect_num" jdbcType="INTEGER"/>
     </resultMap>
 
+    <resultMap type="com.example.bbs.entity.UserForManager" id="UserForManagerMap">
+        <result property="id" column="id" jdbcType="INTEGER"/>
+        <result property="username" column="username" jdbcType="VARCHAR"/>
+        <result property="password" column="password" jdbcType="VARCHAR"/>
+        <result property="registerTime" column="register_time" jdbcType="TIMESTAMP"/>
+        <result property="introduce" column="introduce" jdbcType="VARCHAR"/>
+        <result property="image" column="image" jdbcType="VARCHAR"/>
+        <result property="postNum" column="post_num" jdbcType="INTEGER"/>
+        <result property="replyNum" column="reply_num" jdbcType="INTEGER"/>
+        <result property="collectNum" column="collect_num" jdbcType="INTEGER"/>
+        <result property="limitPost" column="limit_post" jdbcType="INTEGER"/>
+        <result property="limitReply" column="limit_reply" jdbcType="INTEGER"/>
+    </resultMap>
+
     <!--根据账号查询-->
     <select id="selectUserById" resultMap="TUserMap">
         select
@@ -46,7 +60,10 @@
     <!--通过主键修改数据-->
     <update id="updateUserById">
         update bbs.t_user
-        <set>
+        <trim prefix="set" suffixOverrides=",">
+            <if test="id != null">
+                id=#{id},
+            </if>
             <if test="username != null and username != ''">
                 username = #{username},
             </if>
@@ -71,7 +88,7 @@
             <if test="collectNum != null ">
                 collect_num = #{collectNum},
             </if>
-        </set>
+        </trim>
         where id = #{id}
     </update>
 
@@ -84,10 +101,71 @@
         select  count(*) from t_user
     </select>
 
-    <select id="selectAllUser" resultMap="TUserMap">
-        select id, username, password, register_time, introduce, image, post_num, reply_num, collect_num
-        from t_user
+    <select id="selectAllUser" resultMap="UserForManagerMap">
+        SELECT
+            t_user.id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num,
+            t_user.collect_num,
+            (t_blacklist.id IS NOT NULL AND t_blacklist.permission = 1) as limit_post,
+            (t_blacklist.id IS NOT NULL AND t_blacklist.permission = 0) as limit_reply
+        FROM
+            t_user
+                LEFT JOIN t_blacklist ON t_user.id = t_blacklist.user_id
+        WHERE t_user.id  not in ( select user_id from t_blacklist)
         limit #{start},#{size}
+    </select>
+
+   <select id="selectUserInBlacklistCount" resultType="Integer">
+       SELECT
+           count(*)
+       FROM
+           t_user
+               inner JOIN t_blacklist ON t_blacklist.user_id = t_user.id
+   </select>
+
+
+    <select id="selectUserByIdForManager" resultMap="UserForManagerMap">
+        SELECT
+            DISTINCT t_user.id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num,
+            t_user.collect_num,
+            (t_blacklist.id IS NOT NULL AND t_blacklist.permission = 1) as limit_post,
+            (t_blacklist.id IS NOT NULL AND t_blacklist.permission = 0) as limit_reply
+        FROM
+            t_user
+                LEFT JOIN t_blacklist ON t_user.id = t_blacklist.user_id
+        WHERE t_user.id=#{id}
+    </select>
+
+    <select id="selectUserInBlacklist" resultMap="UserForManagerMap">
+        SELECT
+            t_user.id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num,
+            t_user.collect_num,
+            (t_blacklist.id IS NOT NULL AND t_blacklist.permission = 1) as limit_post,
+            (t_blacklist.id IS NOT NULL AND t_blacklist.permission = 0) as limit_reply
+        FROM
+            t_user
+                INNER JOIN t_blacklist ON t_user.id = t_blacklist.user_id
+        LIMIT #{start},#{size}
     </select>
 
 </mapper>
