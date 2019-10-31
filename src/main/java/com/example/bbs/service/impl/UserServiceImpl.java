@@ -25,8 +25,6 @@ public class UserServiceImpl implements UserService {
     @Resource
     private ApproveDao approveDao;
     @Resource
-    private BlacklistDao blacklistDao;
-    @Resource
     private CollectDao collectDao;
     @Resource
     private FollowDao followDao;
@@ -70,11 +68,11 @@ public class UserServiceImpl implements UserService {
     public Integer addUser(User user) {
         //用户名不能重复
         User checkUser = userDao.selectUserByName(user.getUsername());
-        if(checkUser==null){
+        if(checkUser!=null && !checkUser.getId().equals(user.getId())){
+            return -2;//名称重复
+        }else{
             userDao.addUser(user);
             return user.getId();
-        }else{
-            return -2;//名称重复
         }
 
     }
@@ -96,11 +94,11 @@ public class UserServiceImpl implements UserService {
         collectDao.deleteCollectByUserId(id);
         replyDao.deleteReplyByUserId(id);
         //messageDao.deleteMessageByUserId(id);
-        blacklistDao.deleteBlackListByUserId(id);
+        //blacklistDao.deleteBlackListByUserId(id);
         followDao.deleteFollowByUserId(id);
         roleDao.deleteRoleByUserId(id);
-        if(user.getImage()!=null){
-            UploadUtils.deleteFile(user.getImage());
+        if(user.getImage()!=null ){
+            UploadUtils.deleteFile(2,user.getImage());
         }
         return userDao.deleteUserById(id);
     }
@@ -117,8 +115,8 @@ public class UserServiceImpl implements UserService {
         if(checkUser==null){
             return -3;
         }
-        if(checkUser.getImage()!=null){
-            UploadUtils.deleteFile(checkUser.getImage());
+        if(user.getImage()!=null && checkUser.getImage()!=null && !user.getImage().equals(checkUser.getImage())){
+            UploadUtils.deleteFile(2,checkUser.getImage());
         }
         if(!checkUser.getUsername().equals(user.getUsername())){
             //检查用户名重复
@@ -137,49 +135,19 @@ public class UserServiceImpl implements UserService {
      * @return 结果
      */
     @Override
-    public Integer updateUserByIdForManager(UserForManagerDto user) {
+    public Integer updateUserByIdForManager(User user) {
         User checkUser = userDao.selectUserById(user.getId());
         if(checkUser==null){
             return -3;
         }
-        if(checkUser.getImage()!=null){
-            UploadUtils.deleteFile(checkUser.getImage());
+        if(user.getImage()!=null && checkUser.getImage()!=null && !user.getImage().equals(checkUser.getImage())){
+            UploadUtils.deleteFile(2,checkUser.getImage());
         }
         if(!checkUser.getUsername().equals(user.getUsername())){
             //检查用户名重复
             User  checkName = userDao.selectUserByName(user.getUsername());
             if(checkName!=null){
                 return -2;//用户名重复
-            }
-        }
-        if(user.getLimitPost()!=null && user.getLimitPost()==1){
-            Blacklist blacklist=new Blacklist();
-            blacklist.setPermission(1);
-            blacklist.setUserId(user.getId());
-            Integer result = blacklistDao.addBlackList(blacklist);
-            if(result<=0){
-                return -7;//修改黑名单失败
-            }
-        }
-        if(user.getLimitPost()!=null && user.getLimitPost()==0){
-            Integer result = blacklistDao.deleteBlackListByUserIdAndPermission(user.getId(), 1);
-            if(result<=0){
-                return -7;//修改黑名单失败
-            }
-        }
-        if(user.getLimitReply()!=null && user.getLimitReply()==0){
-            Integer result = blacklistDao.deleteBlackListByUserIdAndPermission(user.getId(), 0);
-            if(result<=0){
-                return -7;//修改黑名单失败
-            }
-        }
-        if(user.getLimitReply()!=null && user.getLimitReply()==1){
-            Blacklist blacklist=new Blacklist();
-            blacklist.setPermission(0);
-            blacklist.setUserId(user.getId());
-            Integer result = blacklistDao.addBlackList(blacklist);
-            if(result<=0){
-                return -7;//修改黑名单失败
             }
         }
         user.setId(checkUser.getId());
@@ -193,7 +161,7 @@ public class UserServiceImpl implements UserService {
      * @return
      */
     @Override
-    public UserForManager selectUserByIdForManager(Integer id) {
+    public User selectUserByIdForManager(Integer id) {
         return userDao.selectUserByIdForManager(id);
     }
 
@@ -204,7 +172,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserForManager> selectAllUser(Integer start, Integer size) {
+    public List<User> selectAllUser(Integer start, Integer size) {
         return userDao.selectAllUser(start,size);
     }
 
@@ -226,7 +194,7 @@ public class UserServiceImpl implements UserService {
      * @return
      */
     @Override
-    public List<UserForManager> selectUserInBlacklist( Integer start, Integer size) {
+    public List<User> selectUserInBlacklist( Integer start, Integer size) {
         return userDao.selectUserInBlacklist(start,size);
     }
 

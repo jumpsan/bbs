@@ -30,7 +30,7 @@ public interface UserService {
 
     Integer selectAllUserCount();
 
-    List<UserForManager> selectAllUser(Integer start, Integer size);
+    List<User> selectAllUser(Integer start, Integer size);
 
     /**
      * 黑名单用户数
@@ -44,19 +44,19 @@ public interface UserService {
      * @param size
      * @return
      */
-    List<UserForManager> selectUserInBlacklist(Integer start, Integer size);
+    List<User> selectUserInBlacklist(Integer start, Integer size);
 
     /**
      * 管理员更新用户
      * @param user
      * @return
      */
-    Integer updateUserByIdForManager(UserForManagerDto user);
+    Integer updateUserByIdForManager(User user);
 
     /**
      * 管理员根据编号查询用户
      * @param id
      * @return
      */
-    UserForManager selectUserByIdForManager(Integer id);
+    User selectUserByIdForManager(Integer id);
 }

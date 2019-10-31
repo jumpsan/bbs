@@ -16,6 +16,8 @@ public class User {
     private Integer postNum;
     private Integer replyNum;
     private Integer collectNum;
+    private Integer limitPost;
+    private Integer limitReply;
 
 
 

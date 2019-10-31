@@ -100,7 +100,8 @@ public class SectionServiceImpl implements SectionService {
     @Override
     public Integer updateSection(Section section) {
         Section originSection=sectionDao.selectSectionById(section.getId());
-        if(section.getName()!=null && selectSectionByNameAndPlateId(section.getName(),originSection.getPlateId())!=null){
+        Section checkSection = selectSectionByNameAndPlateId(section.getName(), originSection.getPlateId());
+        if(section.getName()!=null && (checkSection !=null && !checkSection.getId().equals(section.getId()))){
             return -2;
         }
         Admin admin = adminDao.selectAdminById(section.getUserId());

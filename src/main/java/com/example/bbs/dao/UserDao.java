@@ -30,7 +30,7 @@ public interface UserDao {
 
     Integer selectAllUserCount();
 
-    List<UserForManager> selectAllUser(Integer start, Integer size);
+    List<User> selectAllUser(Integer start, Integer size);
 
     /**
      * 黑名单用户数
@@ -44,12 +44,12 @@ public interface UserDao {
      * @param size
      * @return
      */
-    List<UserForManager> selectUserInBlacklist( Integer start, Integer size);
+    List<User> selectUserInBlacklist( Integer start, Integer size);
 
     /**
      * 管理员根据用户编号
      * @param id
      * @return
      */
-    UserForManager selectUserByIdForManager(Integer id);
+    User selectUserByIdForManager(Integer id);
 }

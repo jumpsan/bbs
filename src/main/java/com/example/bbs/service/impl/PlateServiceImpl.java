@@ -149,7 +149,7 @@ public class PlateServiceImpl implements PlateService {
         //名称不能重复
         if(plate.getName()!=null){
             Plate checkPlate=plateDao.selectPlateByFixNameForManager(plate.getName());
-            if(checkPlate!=null)
+            if(checkPlate!=null && checkPlate.getId()!=plate.getId())
                 return -2; //板块名重复
         }
         Plate originPlate = plateDao.selectPlateByIdForManager(plate.getId());

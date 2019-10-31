@@ -1,7 +1,6 @@
 package com.example.bbs.controller;
 
 import com.example.bbs.dto.UserDto;
-import com.example.bbs.dto.UserForManagerDto;
 import com.example.bbs.entity.Information;
 import com.example.bbs.entity.Page;
 import com.example.bbs.entity.User;
@@ -105,6 +104,7 @@ public class UserController {
             Integer userId = userService.addUser(user);
             if( userId>0){
                 User newUser = userService.selectUserById(userId);
+                newUser.setPassword("*");
                 return Information.success(200,"新用户",newUser);
 //                if(multipartFile!=null){
 //                    boolean result = false;
@@ -156,7 +156,7 @@ public class UserController {
      * @return 结果
      */
     @PostMapping("user/update")
-    public Information updateUser(UserDto user,HttpServletRequest request) {
+    public Information updateUser(User user,HttpServletRequest request) {
         Integer id=(Integer)request.getAttribute("userId");
         //User user = userDto.getUser();
         user.setId(id);
@@ -167,24 +167,30 @@ public class UserController {
             if((user.getPassword()!=null && (user.getPassword().length()<6 || user.getPassword().length()>=12)) || (user.getUsername()!=null && user.getUsername().trim().length()<3) ){
                 return Information.error(400,"密码长度必须在6-12之间;用户名长度不可少于3");
             }
-            MultipartFile multipartFile = user.getMultipartFile();
+            user.setLimitPost(null);
+            user.setLimitReply(null);
+            //MultipartFile multipartFile = user.getMultipartFile();
             String newName="";
-            if(multipartFile!=null){
-                newName= UploadUtils.getNewName(multipartFile);
-                if(newName==null){
-                    return Information.error(410,"文件上传失败");
-                }
-                user.setImage(newName);
-            }
+//            if(multipartFile!=null){
+//                newName= UploadUtils.getNewName(multipartFile);
+//                if(newName==null){
+//                    return Information.error(410,"文件上传失败");
+//                }
+//                user.setImage(newName);
+//            }
             Integer result = userService.updateUserById(user);
             if(result>0){
-                if(!newName.equals("")){
-                    try {
-                        UploadUtils.uploadFile(request,multipartFile,3,newName);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return Information.error(410,"上传文件失败");
-                    }
+//                if(!newName.equals("")){
+//                    try {
+//                        UploadUtils.uploadFile(multipartFile,3,newName);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                        return Information.error(410,"上传文件失败");
+//                    }
+//                }
+                //转移图片
+                if(user.getImage()!=null){
+                    UploadUtils.transferFile(2,user.getImage());
                 }
                 User newUser = userService.selectUserById(user.getId());
                 return Information.success(200,"更新用户资料",newUser);
@@ -212,11 +218,11 @@ public class UserController {
         }
         Integer totalPage=total/size+1;
         Integer start=(page-1)*size;
-        List<UserForManager> users= userService.selectAllUser(start, size);
+        List<User> users= userService.selectAllUser(start, size);
         if(users==null){
             return Information.error(204,"分页无内容");
         }else{
-            Page<UserForManager> userPage=new Page<>();
+            Page<User> userPage=new Page<>();
             userPage.setDatas(users);
             userPage.setTotalPage(totalPage);
             userPage.setTotalNum(total);
@@ -240,11 +246,11 @@ public class UserController {
         }
         Integer totalPage=total/size+1;
         Integer start=(page-1)*size;
-        List<UserForManager> users= userService.selectUserInBlacklist(start, size);
+        List<User> users= userService.selectUserInBlacklist(start, size);
         if(users==null){
             return Information.error(204,"分页无内容");
         }else{
-            Page<UserForManager> userPage=new Page<>();
+            Page<User> userPage=new Page<>();
             userPage.setDatas(users);
             userPage.setTotalPage(totalPage);
             userPage.setTotalNum(total);
@@ -278,7 +284,7 @@ public class UserController {
      * @return 结果
      */
     @PostMapping("manager/user/update")
-    public Information updateUserForManager(UserForManagerDto user, HttpServletRequest request) {
+    public Information updateUserForManager(UserForManager user, HttpServletRequest request) {
         //Integer id=(Integer)request.getAttribute("userId");
         //User user = userDto.getUser();
         if(user.getId()==null){
@@ -288,24 +294,27 @@ public class UserController {
             if((user.getPassword()!=null && (user.getPassword().length()<6 || user.getPassword().length()>=12)) || (user.getUsername()!=null && user.getUsername().trim().length()<3) ){
                 return Information.error(400,"密码长度必须在6-12之间;用户名长度不可少于3");
             }
-            MultipartFile multipartFile = user.getMultipartFile();
-            String newName="";
-            if(multipartFile!=null){
-                newName= UploadUtils.getNewName(multipartFile);
-                if(newName==null){
-                    return Information.error(410,"文件上传失败");
-                }
-                user.setImage(newName);
-            }
+            //MultipartFile multipartFile = user.getMultipartFile();
+            //           String newName="";
+//            if(multipartFile!=null){
+//                newName= UploadUtils.getNewName(multipartFile);
+//                if(newName==null){
+//                    return Information.error(410,"文件上传失败");
+//                }
+//                user.setImage(newName);
+//            }
             Integer result = userService.updateUserByIdForManager(user);
             if(result>0){
-                if(!newName.equals("")){
-                    try {
-                        UploadUtils.uploadFile(request,multipartFile,3,newName);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        return Information.error(410,"上传文件失败");
-                    }
+//                if(!newName.equals("")){
+//                    try {
+//                        UploadUtils.uploadFile(multipartFile,3,newName);
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                        return Information.error(410,"上传文件失败");
+//                    }
+//                }
+                if(user.getImage()!=null){
+                    UploadUtils.transferFile(2,user.getImage());
                 }
                 User newUser = userService.selectUserByIdForManager(user.getId());
                 return Information.success(200,"更新用户资料",newUser);
@@ -332,7 +341,7 @@ public class UserController {
         if(id==null){
             return Information.error(406,"关键信息不可为空");
         }else {
-            UserForManager user = userService.selectUserByIdForManager(id);
+            User user = userService.selectUserByIdForManager(id);
             if(user==null){
                 return Information.error(204,"无内容");
             }else{

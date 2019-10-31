@@ -20,8 +20,6 @@ public class CommentServiceImpl implements CommentService {
     @Resource
     private CommentDao commentDao;
     @Resource
-    private BlacklistDao blacklistDao;
-    @Resource
     private PlateDao plateDao;
     @Resource
     private SectionDao sectionDao;
@@ -54,18 +52,22 @@ public class CommentServiceImpl implements CommentService {
         //回复人是否在黑名单
         //分区是否可用
         //板块是否可用
-        Blacklist blacklist = blacklistDao.selectListByUserIdAndPermission(comment.getUserId(), 0);
-        if(blacklist!=null){
+        //Blacklist blacklist = blacklistDao.selectListByUserIdAndPermission(comment.getUserId(), 0);
+        User user = userDao.selectUserById(comment.getUserId());
+        if(user==null){
+            return -5;
+        }
+        if(user.getLimitReply()!=0){
             return -6;//用户在黑名单
         }
         //查找用户名
         if(comment.getToUserId()!=null){
-            User user = userDao.selectUserById(comment.getToUserId());
-            if(user==null){
-                System.out.println("user");
+            User toUser = userDao.selectUserById(comment.getToUserId());
+            if(toUser==null){
+                //System.out.println("user");
                 return -5;
             }
-            comment.setToUsername(user.getUsername());
+            comment.setToUsername(toUser.getUsername());
         }
         Reply reply = replyDao.selectReplyById(comment.getReplyId());
         if(reply==null){
@@ -92,7 +94,6 @@ public class CommentServiceImpl implements CommentService {
         Integer result = commentDao.addComment(comment);
         if(result<=0)
             return -7;
-        //TODO 通知被回复的人
         reply.setCommentNum(reply.getCommentNum()+1);
         replyDao.updateReply(reply);
         //帖子回复数加一

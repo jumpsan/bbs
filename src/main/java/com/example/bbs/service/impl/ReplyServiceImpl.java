@@ -1,7 +1,6 @@
 package com.example.bbs.service.impl;
 
 import com.example.bbs.dao.*;
-import com.example.bbs.entity.Blacklist;
 import com.example.bbs.entity.Post;
 import com.example.bbs.entity.Reply;
 import com.example.bbs.entity.User;
@@ -25,8 +24,6 @@ public class ReplyServiceImpl implements ReplyService {
     private UserDao userDao;
     @Resource
     private PostDao postDao;
-    @Resource
-    private BlacklistDao blacklistDao;
     @Resource
     private CommentDao commentDao;
 
@@ -66,12 +63,12 @@ public class ReplyServiceImpl implements ReplyService {
     public Integer addReply(Reply reply) {
         User user = userDao.selectUserById(reply.getUserId());
         Post post = postDao.selectPostById(reply.getPostId());
-        Blacklist blacklist = blacklistDao.selectListByUserIdAndPermission(reply.getUserId(), 0);
-        if(blacklist!=null){
-            return -6;
-        }
+        //Blacklist blacklist = blacklistDao.selectListByUserIdAndPermission(reply.getUserId(), 0);
         if(user==null){
             return -3;
+        }
+        if(user.getLimitReply()!=0){
+            return -6;
         }
         if(post==null){
             return -5;

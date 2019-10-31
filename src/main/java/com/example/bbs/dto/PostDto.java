@@ -7,7 +7,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @Data
-public class PostDto {
-    private Post post;
+public class PostDto extends Post{
     private List<MultipartFile> multipartFile; //图片或视频
 }

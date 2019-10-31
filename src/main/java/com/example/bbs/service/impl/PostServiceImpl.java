@@ -27,8 +27,6 @@ public class PostServiceImpl implements PostService {
     @Resource
     private SectionDao sectionDao;
     @Resource
-    private BlacklistDao blacklistDao;
-    @Resource
     private ReplyDao replyDao;
     @Resource
     private ApproveDao approveDao;
@@ -74,7 +72,7 @@ public class PostServiceImpl implements PostService {
         if(section.getStatus()==0){
             return -4; //分区被禁用
         }
-        Blacklist blacklist = blacklistDao.selectListByUserIdAndPermission(user.getId(), 1);
+        //Blacklist blacklist = blacklistDao.selectListByUserIdAndPermission(user.getId(), 1);
         Plate plate = plateDao.selectPlateBySectionId(section.getId());
         if(plate==null){
             return -5;
@@ -82,7 +80,7 @@ public class PostServiceImpl implements PostService {
         if(plate.getStatus()==0){
             return -4;//板块被禁用
         }
-        if(blacklist!=null){
+        if(user.getLimitPost()!=0){
             return -6; //用户在黑名单，无权发帖
         }
         //分区帖子数量加一
@@ -125,11 +123,11 @@ public class PostServiceImpl implements PostService {
         }
         //删除文件
         if(post.getVideo()!=null){
-            UploadUtils.deleteFile(post.getVideo());
+            UploadUtils.deleteFile(1,post.getVideo());
         }
         if(post.getImages()!=null && post.getImages().size()>0){
             for(String file:post.getImages()){
-                UploadUtils.deleteFile(file);
+                UploadUtils.deleteFile(0,file);
                 //删除图片记录
                 postImageDao.deleteImageByPostId(id);
             }

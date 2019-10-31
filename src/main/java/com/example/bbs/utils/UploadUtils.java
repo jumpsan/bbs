@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class UploadUtils {
-    public static boolean uploadFile(HttpServletRequest request, MultipartFile multipartFile, Integer type, String newName) throws IOException {
+    public static boolean uploadFile(MultipartFile multipartFile, Integer type, String newName) throws IOException {
         boolean result = false;
         if (!multipartFile.isEmpty() && type != null && newName != null) {    //(1)判断是否为空
             //String filePath =  "upload/";
@@ -18,8 +18,10 @@ public class UploadUtils {
                     realPath = realPath+"images/";  //(2) 存放路径
                 } else if (type == 1) {
                     realPath = realPath+"videos/";  //(2) 存放路径
-                } else {
+                } else if(type==2) {
                     realPath = realPath+"head/";
+                }else{
+                    realPath = realPath+"tempo/";
                 }
                 File dir=new File(realPath);
                 if(!dir.exists()){
@@ -43,8 +45,18 @@ public class UploadUtils {
         return newName;
     }
 
-    public static boolean deleteFile(String fileName) {
-        File file = new File(fileName);
+    public static boolean deleteFile(Integer type,String fileName) {
+        String realPath = "C:\\java\\";
+        if (type == 0) {
+            realPath = realPath+"images/";  //(2) 存放路径
+        } else if (type == 1) {
+            realPath = realPath+"videos/";  //(2) 存放路径
+        } else if(type==2) {
+            realPath = realPath+"head/";
+        }else{
+            realPath = realPath+"tempo/";
+        }
+        File file = new File(realPath+fileName);
         // 如果文件路径所对应的文件存在，并且是一个文件，则直接删除
         if (file.exists() && file.isFile()) {
             if (file.delete()) {
@@ -58,6 +70,28 @@ public class UploadUtils {
             //System.out.println("删除文件失败：" + fileName + "不存在！");
             return true;//无此文件
         }
+    }
+
+    public static boolean transferFile(Integer type,String fileName){
+        String tempoPath="c:/java/tempo/"+fileName;
+        String realPath = "C:\\java\\";
+        if (type == 0) {
+            realPath = realPath+"images/";  //(2) 存放路径
+        } else if (type == 1) {
+            realPath = realPath+"videos/";  //(2) 存放路径
+        } else if(type==2) {
+            realPath = realPath+"head/";
+        }else{
+            realPath = realPath+"tempo/";
+        }
+        File tempoFile = new File(tempoPath);
+        File targetFile = new File(realPath);//获取目标文件夹路径
+        if(!targetFile.exists()){//判断文件夹是否创建，没有创建则创建新文件夹
+            targetFile.mkdirs();
+        }
+//        System.out.println(endPath + startFile.getName());
+        return tempoFile.renameTo(new File(realPath + fileName));
+
     }
 
 
