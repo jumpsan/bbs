@@ -110,7 +110,7 @@ public class ApproveController {
             return Information.error(204,"分页无内容返回");
         }
         Integer totalPage=total/size+1;
-        Integer start=(page-1)*size;
+        Integer start=(page-1)*size+1;
         List<Post> posts = approveService.selectApprovedPostByUserId(userId,start,size);
         if(posts==null){
             return Information.error(204,"分页无内容返回");

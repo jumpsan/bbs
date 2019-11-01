@@ -36,7 +36,7 @@ public class CommentController {
     public Information addComment(Comment comment, HttpServletRequest request){
         Integer userId=(Integer)request.getAttribute("userId");
         comment.setUserId(userId);
-        boolean condition=comment.getComment().trim().equals("") || comment.getComment()==null || comment.getReplyId()==null;
+        boolean condition= comment.getComment()==null || comment.getReplyId()==null || comment.getComment().trim().equals("") ;
         if(condition){
             return Information.error(406,"关键信息不可为空");
         }
@@ -90,7 +90,7 @@ public class CommentController {
             return  Information.error(204,"无内容");
         }
         Integer totalPage=total/size+1;
-        Integer start=(page-1)*size;
+        Integer start=(page-1)*size+1;
         List<CommentReply> comments = commentService.selectCommentByUserId(userId,start,size);
         if(comments==null || comments.size()<=0){
             return  Information.error(204,"无内容");

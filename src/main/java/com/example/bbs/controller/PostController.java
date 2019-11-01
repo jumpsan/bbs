@@ -1,19 +1,15 @@
 package com.example.bbs.controller;
 
-import com.example.bbs.dto.PostDto;
 import com.example.bbs.entity.*;
+import com.example.bbs.service.CollectService;
 import com.example.bbs.service.PostService;
-import com.example.bbs.utils.FileUtils;
 import com.example.bbs.utils.UploadUtils;
-import org.apache.commons.codec.Decoder;
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +26,8 @@ public class PostController {
      */
     @Resource
     private PostService postService;
+    @Resource
+    private CollectService collectService;
 
     /**
      * 根据分区编号查询帖子
@@ -50,7 +48,7 @@ public class PostController {
             }
             //总页数
             Integer totalPage = total / size + 1;
-            Integer start = (page - 1) * size;
+            Integer start = (page - 1) * size+1;
             List<Post> posts = postService.selectPostBySectionId(id, start, size);
             if (posts != null) {
                 Page<Post> postPage = new Page<>();
@@ -85,7 +83,7 @@ public class PostController {
             }
             //总页数
             Integer totalPage = total / size + 1;
-            Integer start = (page - 1) * size;
+            Integer start = (page - 1) * size+1;
             List<Post> posts = postService.selectPostByUserId(id, start, size);
             if (posts != null) {
                 Page<Post> postPage = new Page<>();
@@ -138,12 +136,22 @@ public class PostController {
      * @return 帖子
      */
     @GetMapping("post/select/{id}")
-    public Information selectPostByIdForUser(@PathVariable Integer id) {
+    public Information selectPostByIdForUser(@PathVariable Integer id, HttpServletRequest request) {
+        Integer userId = (Integer) request.getAttribute("userId");
+        System.out.println(userId);
         if (id == null) {
             return Information.error(406, "关键信息不能为空");
         } else {
             Post post = postService.selectPostByIdForUser(id);
             if (post != null) {
+                if (userId != null) {
+                    Collect collect = collectService.selectCollectByUserIdAndPostId(userId,id);
+                    if(collect!=null){
+                        post.setIsCollected(1);
+                    }else{
+                        post.setIsCollected(0);
+                    }
+                }
                 return Information.success(200, "帖子", post);
             } else {
                 return Information.error(204, "无");
@@ -170,7 +178,7 @@ public class PostController {
             }
             //总页数
             Integer totalPage = total / size + 1;
-            Integer start = (page - 1) * size;
+            Integer start = (page - 1) * size+1;
             List<Post> posts = postService.selectPostByTitle(title, start, size);
             if (posts != null) {
                 Page<Post> postPage = new Page<>();
@@ -226,10 +234,10 @@ public class PostController {
 //                post.setVideo(fileName.get(0));
 //            }
 //        }
-        if(post.getImages()!=null && post.getImages().size()>0){
+        if (post.getImages() != null && post.getImages().size() > 0) {
             //将图片从临时文件夹移到图片文件夹
-            for(String image:post.getImages()){
-                UploadUtils.transferFile(0,image);
+            for (String image : post.getImages()) {
+                UploadUtils.transferFile(0, image);
             }
         }
         Integer postId = postService.addPost(post);
@@ -262,6 +270,7 @@ public class PostController {
 
     /**
      * 上传到临时文件夹
+     *
      * @param image
      * @return
      */
@@ -270,7 +279,7 @@ public class PostController {
         //将图片的字符串解码
 //        if (image == null) //图像数据为空
 //            return false;
-        if(image==null){
+        if (image == null) {
             return null;
         }
         //需要去掉前缀
@@ -287,18 +296,18 @@ public class PostController {
             //获得名字
             String uuidName = UUID.randomUUID().toString();  //(4)获得UUID，避免重复
             //创建目录
-            String dir = "C:/java/tempo/image/";
-            File dirFile=new File(dir);
-            if(!dirFile.exists()){
+            String dir = "C:/java/tempo/";
+            File dirFile = new File(dir);
+            if (!dirFile.exists()) {
                 dirFile.mkdirs();
             }
             //生成jpeg图片
-            String imgFilePath = dir+uuidName+".jpeg";//新生成的图片
+            String imgFilePath = dir + uuidName + ".jpeg";//新生成的图片
             OutputStream out = new FileOutputStream(imgFilePath);
             out.write(buffer);
             out.flush();
             out.close();
-            return "/image/"+uuidName+".jpeg";
+            return  uuidName + ".jpeg";
         } catch (Exception e) {
             e.printStackTrace();
             //上传失败
@@ -404,7 +413,7 @@ public class PostController {
             return Information.error(204, "分页无内容");
         }
         Integer totalPage = total / size + 1;
-        Integer start = (page - 1) * size;
+        Integer start = (page - 1) * size+1;
         List<Post> posts = postService.selectPostInPlateByUpdateTime(plateId, start, size);
         if (posts == null || posts.size() == 0) {
             return Information.error(204, "分页无内容返回");
@@ -433,7 +442,7 @@ public class PostController {
         //总页数
         Integer totalPage = total / size + 1;
         //起始行数
-        Integer start = (page - 1) * size;
+        Integer start = (page - 1) * size+1;
         List<Post> posts = postService.selectPostByPlateNameAndSectionName(plateName, sectionName, start, size);
         if (posts == null || posts.size() <= 0) {
             return Information.error(204, "分页无内容返回");
@@ -461,7 +470,7 @@ public class PostController {
             return Information.error(204, "分页无内容");
         }
         Integer totalPage = total / size + 1;
-        Integer start = (page - 1) * size;
+        Integer start = (page - 1) * size+1;
         List<Post> posts = postService.selectPostInPlateBySendTime(plateId, start, size);
         if (posts == null || posts.size() == 0) {
             return Information.error(204, "分页无内容返回");
@@ -488,7 +497,7 @@ public class PostController {
             return Information.error(204, "分页无内容");
         }
         Integer totalPage = total / size + 1;
-        Integer start = (page - 1) * size;
+        Integer start = (page - 1) * size+1;
         List<Post> posts = postService.selectPostInPlateByHot(plateId, start, size);
         if (posts == null || posts.size() == 0) {
             return Information.error(204, "分页无内容返回");
@@ -519,7 +528,7 @@ public class PostController {
             }
             //总页数
             Integer totalPage = total / size + 1;
-            Integer start = (page - 1) * size;
+            Integer start = (page - 1) * size+1;
             List<Post> posts = postService.selectPostBySectionIdAndUpdateTime(sectionId, start, size);
             if (posts != null) {
                 Page<Post> postPage = new Page<>();
@@ -553,7 +562,7 @@ public class PostController {
             }
             //总页数
             Integer totalPage = total / size + 1;
-            Integer start = (page - 1) * size;
+            Integer start = (page - 1) * size+1;
             List<Post> posts = postService.selectPostBySectionIdAndSendTime(sectionId, start, size);
             if (posts != null) {
                 Page<Post> postPage = new Page<>();
@@ -587,7 +596,7 @@ public class PostController {
             }
             //总页数
             Integer totalPage = total / size + 1;
-            Integer start = (page - 1) * size;
+            Integer start = (page - 1) * size+1;
             List<Post> posts = postService.selectPostBySectionIdAndHot(sectionId, start, size);
             if (posts != null) {
                 Page<Post> postPage = new Page<>();
@@ -621,7 +630,7 @@ public class PostController {
                 return Information.error(204, "分页无内容返回");
             }
             Integer totalPage = total / size + 1;
-            Integer start = (page - 1) * size;
+            Integer start = (page - 1) * size+1;
             List<Post> posts = postService.selectUncheckPostBySectionId(sectionId, start, size);
             if (posts == null) {
                 return Information.error(204, "分页无内容返回");
@@ -652,7 +661,7 @@ public class PostController {
                 return Information.error(204, "分页无内容返回");
             }
             Integer totalPage = total / size + 1;
-            Integer start = (page - 1) * size;
+            Integer start = (page - 1) * size+1;
             List<Post> posts = postService.selectUncheckPostByPlateId(plateId, start, size);
             if (posts == null) {
                 return Information.error(204, "分页无内容返回");
@@ -682,7 +691,7 @@ public class PostController {
                 return Information.error(204, "分页无内容返回");
             }
             Integer totalPage = total / size + 1;
-            Integer start = (page - 1) * size;
+            Integer start = (page - 1) * size+1;
             List<Post> posts = postService.selectUncheckPost(start, size);
             if (posts == null) {
                 return Information.error(204, "分页无内容返回");
@@ -756,7 +765,7 @@ public class PostController {
         post.setSectionId(null);
         Integer userId = (Integer) request.getAttribute("userId");
         post.setUserId(userId);
-        boolean available = post.getContent() == null || post.getPlateId() == null || post.getStatus() == null || post.getTitle() == null || post.getType() == null ||  post.getContent().trim().length() < 15 ;
+        boolean available = post.getContent() == null || post.getPlateId() == null || post.getStatus() == null || post.getTitle() == null || post.getType() == null || post.getContent().trim().length() < 15;
         if (available) {
             return Information.error(406, "关键信息不可为空，文字内容不可少于15");
         }
@@ -804,9 +813,9 @@ public class PostController {
 ////                }
 ////            }
             //将图片从临时文件夹移到目标文件夹
-            if(post.getImages()!=null && post.getImages().size()>0){
-                for(String image:post.getImages()){
-                    UploadUtils.transferFile(0,image);
+            if (post.getImages() != null && post.getImages().size() > 0) {
+                for (String image : post.getImages()) {
+                    UploadUtils.transferFile(0, image);
                 }
             }
 
@@ -867,7 +876,7 @@ public class PostController {
             return Information.error(204, "分页无内容返回");
         }
         Integer totalPage = total / size + 1;
-        Integer start = (page - 1) * size;
+        Integer start = (page - 1) * size+1;
         List<Post> posts = postService.selectIndexPagePost(start, size);
         if (posts == null || posts.size() <= 0) {
             return Information.error(400, "查询失败");

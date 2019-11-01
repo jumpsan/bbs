@@ -44,7 +44,7 @@ public class FollowController {
                 return Information.success(204,"分页无内容返回",null);
             }
             Page<User> followList=new Page<>();
-            Integer start=(page-1)*size;
+            Integer start=(page-1)*size+1;
             followList.setDatas(followService.selectByFollowId(followId, start, size));
             Integer totalPage =total /size+1;
             followList.setTotalPage(totalPage);
@@ -83,7 +83,7 @@ public class FollowController {
                 return Information.success(204,"分页无内容返回",null);
             }else{
                 Page<User> userPage=new Page<>();
-                Integer start=(page-1)*size;
+                Integer start=(page-1)*size+1;
                 userPage.setDatas(followService.selectByFollowedId(followedId, start, size));
                 Integer totalPage =total /size+1;
                 userPage.setTotalPage(totalPage);

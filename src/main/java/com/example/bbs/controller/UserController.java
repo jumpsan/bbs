@@ -217,7 +217,7 @@ public class UserController {
             return Information.error(204,"分页无内容");
         }
         Integer totalPage=total/size+1;
-        Integer start=(page-1)*size;
+        Integer start=(page-1)*size+1;
         List<User> users= userService.selectAllUser(start, size);
         if(users==null){
             return Information.error(204,"分页无内容");
@@ -245,7 +245,7 @@ public class UserController {
             return Information.error(204,"分页无内容");
         }
         Integer totalPage=total/size+1;
-        Integer start=(page-1)*size;
+        Integer start=(page-1)*size+1;
         List<User> users= userService.selectUserInBlacklist(start, size);
         if(users==null){
             return Information.error(204,"分页无内容");

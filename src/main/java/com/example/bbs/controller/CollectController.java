@@ -43,7 +43,7 @@ public class CollectController {
                 return Information.success(204,"无记录",null);
             }else{
                 Integer totalPage=total/size+1;
-                Integer start=(page-1)*size;
+                Integer start=(page-1)*size+1;
                 List<Post> posts= collectService.selectCollectPostByUserId(id,start, size);
                 Page<Post> pageObject=new Page<>();
                 pageObject.setDatas(posts);
@@ -74,7 +74,7 @@ public class CollectController {
                 return Information.success(204,"无记录",null);
             }
             Integer totalPage=total/size+1;
-            Integer start=(page-1)*size;
+            Integer start=(page-1)*size+1;
             List<User> users= collectService.selectCollectUserByPostId(id,start, size);
             Page<User> userPage=new Page<>();
             userPage.setDatas(users);

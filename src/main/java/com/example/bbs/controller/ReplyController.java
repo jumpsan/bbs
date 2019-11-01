@@ -60,7 +60,7 @@ public class ReplyController {
             }
             //总页数
             Integer totalPage=total/size+1;
-            Integer start=(page-1)*size;
+            Integer start=(page-1)*size+1;
             List<Reply> replies= replyService.selectReplyByPostId(id,start, size);
             Page<Reply> replyPage=new Page<>();
             replyPage.setDatas(replies);
@@ -94,7 +94,7 @@ public class ReplyController {
             }
             //总页数
             Integer totalPage=total/size+1;
-            Integer start=(page-1)*size;
+            Integer start=(page-1)*size+1;
             List<Reply> replies= replyService.selectReplyByUserId(id,start, size);
             if(replies!=null) {
                 Page<Reply> replyPage=new Page<>();
@@ -118,7 +118,7 @@ public class ReplyController {
     public Information addReply(Reply reply,HttpServletRequest request) {
         Integer userId=(Integer)request.getAttribute("userId");
         reply.setUserId(userId);
-        System.out.println(userId);
+        //System.out.println(userId);
         if (reply.getUserId()==null || reply.getContent()==null || reply.getPostId()==null || reply.getContent().trim().length()<15) {
             return Information.error(406,"关键信息不可为空,回复内容不得少于15");
         }else{

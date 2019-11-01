@@ -28,6 +28,8 @@ public class Post {
     private List<String> images;
     //发帖人
     private User user;
+    //是否收藏了
+    private Integer isCollected;
 
 
 

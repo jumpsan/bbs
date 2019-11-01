@@ -24,7 +24,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
     ManagerInterceptor managerInterceptor;
     public void addInterceptors(InterceptorRegistry registry) {
         System.out.println("拦截器注册");
-        registry.addInterceptor(loginInterceptor).addPathPatterns("/**").excludePathPatterns("/admin/login").excludePathPatterns("/user/login").excludePathPatterns("/user/register").excludePathPatterns("/post/select/**")
+        registry.addInterceptor(loginInterceptor).addPathPatterns("/**").excludePathPatterns("/admin/login").excludePathPatterns("/user/login").excludePathPatterns("/user/register")
                 .excludePathPatterns("/reply/select/**").excludePathPatterns("/plate/search/**").excludePathPatterns("/section/select/**").excludePathPatterns("/user/select/**")
                 .excludePathPatterns("/image/**").excludePathPatterns("/video/**").excludePathPatterns("/head/**").excludePathPatterns("/comment/select/**");
         registry.addInterceptor(managerInterceptor).addPathPatterns("/manager/**");

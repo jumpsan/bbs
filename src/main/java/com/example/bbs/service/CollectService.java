@@ -31,4 +31,12 @@ public interface CollectService {
     Collect selectCollectById(Integer id);
 
     Integer deleteCollectByUserIdAndPostId(Integer userId, Integer postId);
+
+    /**
+     * 根据用户编号和帖子编号查询
+     * @param userId
+     * @param postId
+     * @return
+     */
+    Collect selectCollectByUserIdAndPostId(Integer userId, Integer postId);
 }

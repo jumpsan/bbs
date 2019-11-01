@@ -124,4 +124,16 @@ public class CollectServiceImpl implements CollectService {
         userDao.updateUserById(user);
         return collectDao.deleteCollectByUserIdAndPostId(userId,postId);
     }
+
+    /**
+     * 根据用户编号和帖子编号查询
+     *
+     * @param userId
+     * @param postId
+     * @return
+     */
+    @Override
+    public Collect selectCollectByUserIdAndPostId(Integer userId, Integer postId) {
+        return collectDao.selectCollectByUserIdAndPostId(userId,postId);
+    }
 }
