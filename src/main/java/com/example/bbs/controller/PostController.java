@@ -279,7 +279,7 @@ public class PostController {
         //将图片的字符串解码
 //        if (image == null) //图像数据为空
 //            return false;
-        //System.out.println(image);
+        System.out.println(image);
         if (image == null) {
             return null;
         }
