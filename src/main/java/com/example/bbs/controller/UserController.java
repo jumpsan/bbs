@@ -352,4 +352,69 @@ public class UserController {
     }
 
 
+    /**
+     * 修改用户信息
+     *
+     * @param username 用户
+     * @return 结果
+     */
+    @PostMapping("user/update/username")
+    public Information updateUserForName(String username, HttpServletRequest request) {
+        Integer userId=(Integer)request.getAttribute("userId");
+        if(userId==null){
+            return Information.error(406,"关键信息不可为空");
+        }else{
+            //如果密码过长
+            if( (username!=null && username.trim().length()<3) ){
+                return Information.error(400,"密码长度必须在6-12之间;用户名长度不可少于3");
+            }
+            User user=new User();
+            user.setUsername(username);
+            Integer result = userService.updateUserByIdForManager(user);
+            if(result>0){
+                User newUser = userService.selectUserByIdForManager(user.getId());
+                return Information.success(200,"更新用户资料",newUser);
+            }else if(result==-2){
+                return Information.error(402,"用户名重复");
+            }else if(result==-3){
+                return Information.error(404,"用户不存在");
+            }else {
+                return Information.error(400,"更新失败");
+            }
+        }
+    }
+
+//
+//    /**
+//     * 修改用户信息
+//     *
+//     * @param introduce 用户
+//     * @return 结果
+//     */
+//    @PostMapping("user/update/introduce")
+//    public Information updateUserForIntroduce(String introduce, HttpServletRequest request) {
+//        Integer userId=(Integer)request.getAttribute("userId");
+//        if(userId==null){
+//            return Information.error(406,"关键信息不可为空");
+//        }else{
+//            //如果密码过长
+//            if( (introduce!=null && introduce.trim().length()<3) ){
+//                return Information.error(400,"密码长度必须在6-12之间;用户名长度不可少于3");
+//            }
+//            User user=new User();
+//            user.setUsername(username);
+//            Integer result = userService.updateUserByIdForManager(user);
+//            if(result>0){
+//                User newUser = userService.selectUserByIdForManager(user.getId());
+//                return Information.success(200,"更新用户资料",newUser);
+//            }else if(result==-2){
+//                return Information.error(402,"用户名重复");
+//            }else if(result==-3){
+//                return Information.error(404,"用户不存在");
+//            }else {
+//                return Information.error(400,"更新失败");
+//            }
+//        }
+//    }
+
 }

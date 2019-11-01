@@ -209,7 +209,7 @@ public class PostController {
         //先审核
         post.setStatus(3);
         //List<MultipartFile> multipartFiles = post.getMultipartFile();
-        boolean available = post.getUserId() == null || post.getContent() == null || post.getSectionId() == null || post.getTitle() == null || post.getType() == null || post.getContent().trim().length() < 15;
+        boolean available = post.getUserId() == null || post.getContent() == null || post.getSectionId() == null || post.getTitle() == null  || post.getContent().trim().length() < 15;
         if (available) {
             return Information.error(406, "关键信息不可为空，文字内容不少于15");
         }
@@ -279,6 +279,7 @@ public class PostController {
         //将图片的字符串解码
 //        if (image == null) //图像数据为空
 //            return false;
+        //System.out.println(image);
         if (image == null) {
             return null;
         }

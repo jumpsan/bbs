@@ -62,7 +62,7 @@ public class PostServiceImpl implements PostService {
         //title, user_id,section_id,  content,type
         User user = userDao.selectUserById(post.getUserId());
         Section section = sectionDao.selectSectionById(post.getSectionId());
-
+        post.setType(0);
         if(user==null){
             return -3;//用户不存在
         }
