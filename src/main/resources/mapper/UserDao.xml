@@ -11,6 +11,7 @@
         <result property="image" column="image" jdbcType="VARCHAR"/>
         <result property="postNum" column="post_num" jdbcType="INTEGER"/>
         <result property="replyNum" column="reply_num" jdbcType="INTEGER"/>
+        <result property="collectNum" column="collect_num" jdbcType="INTEGER"/>
         <result property="limitPost" column="limit_post" jdbcType="INTEGER"/>
         <result property="limitReply" column="limit_reply" jdbcType="INTEGER"/>
     </resultMap>

@@ -153,4 +153,21 @@
     <select id="selectAllReplyCountByUserId" resultType="Integer">
         select count(*) from t_reply where user_id=#{id}
     </select>
+
+    <select id="selectAllReplyCount" resultType="Integer">
+        select count(*) from t_reply
+    </select>
+
+    <select id="selectAllReply" resultMap="TReplyMap">
+        SELECT
+            r.reply_time,
+            r.id,
+            r.user_id,
+            r.post_id,
+            r.content,
+            r.comment_num
+        FROM
+            t_reply AS r
+        limit #{start}, #{size}
+    </select>
 </mapper>

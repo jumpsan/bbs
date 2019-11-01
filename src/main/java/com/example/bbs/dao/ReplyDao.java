@@ -1,5 +1,6 @@
 package com.example.bbs.dao;
 
+import com.example.bbs.entity.Comment;
 import com.example.bbs.entity.Reply;
 import com.example.bbs.entity.Section;
 
@@ -43,4 +44,18 @@ public interface ReplyDao {
     Integer selectAllReplyCountByUserId(Integer id);
 
     Integer deleteReplyByUserId(Integer id);
+
+    /**
+     * 数量
+     * @return
+     */
+    Integer selectAllReplyCount();
+
+    /**
+     *
+     * @param start
+     * @param size
+     * @return
+     */
+    List<Reply> selectAllReply(Integer start, Integer size);
 }

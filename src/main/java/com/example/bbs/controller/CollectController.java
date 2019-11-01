@@ -88,18 +88,20 @@ public class CollectController {
     }
 
     /**
-     * 添加收藏记录
-     * 帖子的收藏数量也要增加1
-     * userId postId
-     * @param postId 收藏记录
-     * @return 返回主键值
+     * 根据状态码修改收藏状态
+     * @param status
+     * @param postId
+     * @param request
+     * @return
      */
-    @PostMapping("add")
-    public Information addCollect(Integer postId,HttpServletRequest request){
+    @PostMapping("update")
+    public Information updateCollect( Integer status, Integer postId,HttpServletRequest request){
         Integer userId =(Integer) request.getAttribute("userId");
         if (userId==null  && postId==null) {
             return Information.error(406,"必须信息为空");
-        }else{
+        }
+        //判断状态
+        if(status==1){
             Collect collect=new Collect();
             collect.setPostId(postId);
             collect.setUserId(userId);
@@ -116,11 +118,55 @@ public class CollectController {
                 return Information.error(402,"添加重复");
             }
             else {
-                Collect newCollect = collectService.selectCollectById(collectId);
-                return Information.success(200,"添加成功",newCollect);
+                return Information.success(200,"添加成功",1);
+            }
+        }else{
+            Integer result = collectService.deleteCollectByUserIdAndPostId(userId,postId);
+            if(result>0){
+                return Information.success(200,"删除成功",0);
+            }
+            else {
+                return Information.error(400,"删除失败");
             }
         }
     }
+
+
+
+//    /**
+//     * 添加收藏记录
+//     * 帖子的收藏数量也要增加1
+//     * userId postId
+//     * @param postId 收藏记录
+//     * @return 返回主键值
+//     */
+//    @PostMapping("add")
+//    public Information addCollect(Integer postId,HttpServletRequest request){
+//        Integer userId =(Integer) request.getAttribute("userId");
+//        if (userId==null  && postId==null) {
+//            return Information.error(406,"必须信息为空");
+//        }else{
+//            Collect collect=new Collect();
+//            collect.setPostId(postId);
+//            collect.setUserId(userId);
+//            Integer collectId = collectService.addCollect(collect);
+//            if(collectId==null || collectId==0){
+//                return Information.error(400,"添加失败");
+//            }
+//            else if (collectId==-5) {
+//                return Information.error(407,"所添加目标帖子不存在");
+//            }
+//            else if (collectId==-3) {
+//                return Information.error(404,"创建用户不存在");
+//            }else if(collectId==-2){
+//                return Information.error(402,"添加重复");
+//            }
+//            else {
+//                Collect newCollect = collectService.selectCollectById(collectId);
+//                return Information.success(200,"添加成功",newCollect);
+//            }
+//        }
+//    }
 
 //    /**
 //     * 删除单个收藏记录
@@ -155,23 +201,23 @@ public class CollectController {
 //        return information;
 //    }
 
-    /**
-     * 根据用户以及帖子删除收藏记录
-     * @param postId 帖子
-     * @return 信息
-     */
-    @GetMapping("delete/user/post/{postId}")
-    public Information deleteCollectByUserIdAndPostId(@PathVariable Integer postId,HttpServletRequest request) {
-        Integer id=(Integer)request.getAttribute("userId");
-        if(id==null || postId==null){
-            return Information.error(406,"关键信息为空");
-        }
-        Integer result = collectService.deleteCollectByUserIdAndPostId(id,postId);
-        if(result>0){
-            return Information.success("删除");
-        }
-        else {
-            return Information.error(400,"删除失败");
-        }
-    }
+//    /**
+//     * 根据用户以及帖子删除收藏记录
+//     * @param postId 帖子
+//     * @return 信息
+//     */
+//    @GetMapping("delete/user/post/{postId}")
+//    public Information deleteCollectByUserIdAndPostId(@PathVariable Integer postId,HttpServletRequest request) {
+//        Integer id=(Integer)request.getAttribute("userId");
+//        if(id==null || postId==null){
+//            return Information.error(406,"关键信息为空");
+//        }
+//        Integer result = collectService.deleteCollectByUserIdAndPostId(id,postId);
+//        if(result>0){
+//            return Information.success("删除");
+//        }
+//        else {
+//            return Information.error(400,"删除失败");
+//        }
+//    }
 }

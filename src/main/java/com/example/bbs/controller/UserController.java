@@ -34,15 +34,16 @@ public class UserController {
     /**
      * 根据账号查询
      *
-     * @param id
      * @return
      */
-    @GetMapping("user/select/{id}")
-    public Information selectUserById(@PathVariable Integer id) {
-        if(id==null){
+    @GetMapping("user/select")
+    public Information selectUserById(HttpServletRequest request) {
+        Integer userId=(Integer)request.getAttribute("userId");
+        System.out.println(userId);
+        if(userId==null){
             return Information.error(406,"关键信息不可为空");
         }else {
-            User user = userService.selectUserById(id);
+            User user = userService.selectUserById(userId);
             if(user==null){
                 return Information.error(204,"无内容");
             }else{

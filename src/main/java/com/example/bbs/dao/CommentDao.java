@@ -59,4 +59,27 @@ public interface CommentDao {
      * @return
      */
     Integer selectCommentCountByUserId(Integer userId);
+
+    /**
+     * 数量
+     * @param replyId
+     * @return
+     */
+    Integer selectCommentCountByReplyId(Integer replyId);
+
+    List<Comment> selectCommentByReplyIdForUser(Integer replyId, Integer start, Integer size);
+
+    /**
+     * 数量
+     * @return
+     */
+    Integer selectAllCommentCount();
+
+    /**
+     * 所有
+     * @param start
+     * @param size
+     * @return
+     */
+    List<Comment> selectAllComment(Integer start, Integer size);
 }

@@ -149,10 +149,10 @@ public class ReplyController {
     public Information deleteReplyById(@PathVariable Integer replyId,HttpServletRequest request) {
         Reply reply = replyService.selectReplyById(replyId);
         if(reply==null){
-            return Information.error(400,"删除失败");
+            return Information.error(404,"不存在");
         }
         Integer userId =(Integer) request.getAttribute("userId");
-        if(userId!=reply.getUserId()){
+        if(!userId.equals(reply.getUserId())){
             return Information.error(411,"非法操作");
         }
         Integer result = replyService.deleteReplyById(replyId);
@@ -189,6 +189,72 @@ public class ReplyController {
             } else{
                 Reply newReply = replyService.selectReplyById(reply.getId());
                 return Information.success(200,"更新成功",newReply);
+            }
+        }
+    }
+
+    /**
+     * 管理员删除评论
+     * @param replyId
+     * @return
+     */
+    @GetMapping("manager/delete/reply/{replyId}")
+    public Information deleteReplyByManager(@PathVariable Integer replyId){
+        Reply reply = replyService.selectReplyById(replyId);
+        if(reply==null){
+            return Information.error(404,"不存在");
+        }
+        Integer result = replyService.deleteReplyById(replyId);
+        if(result>0){
+            return Information.success("删除");
+        }
+        else {
+            return Information.error(400,"删除失败");
+        }
+    }
+
+    /**
+     * 查看所有回复
+     * @param page
+     * @param size
+     * @return
+     */
+    @GetMapping("manager/reply/select/all/{page}/{size}")
+    public Information selectAllReply(@PathVariable Integer page,@PathVariable Integer size){
+        Integer total=replyService.selectAllReplyCount();
+        if(total==null){
+            return Information.error(204,"无内容");
+        }
+        Integer totalPage=total/size+1;
+        Integer start=(page-1)*size+1;
+        List<Reply> replies=replyService.selectAllReply(start,size);
+        if(replies==null || replies.size()==0){
+            return Information.error(204,"无内容");
+        }
+        Page<Reply> replyPage=new Page<>();
+        replyPage.setTotalNum(total);
+        replyPage.setTotalPage(totalPage);
+        replyPage.setDatas(replies);
+        return Information.success(200,"回复",replyPage);
+    }
+
+
+    /**
+     * 根据回复id查出
+     *
+     * @param replyId 回复id
+     * @return
+     */
+    @GetMapping("manager/reply/select/{replyId}")
+    public Information selectReplyByIdForManager(@PathVariable Integer replyId) {
+        if(replyId==null){
+            return Information.error(406,"回复编号不可为空");
+        }else{
+            Reply reply = replyService.selectReplyById(replyId);
+            if(reply!=null) {
+                return Information.success(200,"回复",reply);
+            }else {
+                return Information.error(204,"无内容");
             }
         }
     }

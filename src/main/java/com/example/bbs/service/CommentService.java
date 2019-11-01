@@ -57,4 +57,31 @@ public interface CommentService {
      */
     Integer selectCommentCountByUserId(Integer userId);
 
+    /**
+     * 根据回复编号查找楼中楼数量
+     * @param replyId
+     * @return
+     */
+    Integer selectCommentCountByReplyId(Integer replyId);
+
+    /**
+     * 根据回复编号茶盅楼中楼
+     * @param replyId
+     * @return
+     */
+    List<Comment> selectCommentByReplyId(Integer replyId,Integer start,Integer size);
+
+    /**
+     * 数量
+     * @return
+     */
+    Integer selectAllCommentCount();
+
+    /**
+     * 楼中楼
+     * @param start
+     * @param size
+     * @return
+     */
+    List<Comment> selectAllComment(Integer start, Integer size);
 }

@@ -165,6 +165,17 @@ public class UserServiceImpl implements UserService {
         return userDao.selectUserByIdForManager(id);
     }
 
+    /**
+     * 根据用户名查看
+     *
+     * @param username
+     * @return
+     */
+    @Override
+    public User selectUserByUsername(String username) {
+        return userDao.selectUserByName(username);
+    }
+
     @Override
     public Integer selectAllUserCount() {
         return userDao.selectAllUserCount();

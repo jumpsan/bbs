@@ -59,4 +59,11 @@ public interface UserService {
      * @return
      */
     User selectUserByIdForManager(Integer id);
+
+    /**
+     * 根据用户名查看
+     * @param username
+     * @return
+     */
+    User selectUserByUsername(String username);
 }

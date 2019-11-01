@@ -96,6 +96,7 @@
             t_comment
                 INNER JOIN t_user ON t_user.id = t_comment.user_id
         WHERE reply_id=#{replyId}
+        ORDER BY comment_time DESC
     </select>
 
     <select id="selectCommentByUserId" resultMap="CommentReplyMap">
@@ -105,5 +106,62 @@
     <select id="selectCommentCountByUserId" resultType="Integer">
         select count(*)
         from t_comment where user_id=#{userId};
+    </select>
+
+    <select id="selectCommentCountByReplyId" resultType="Integer">
+        select count(*) from t_comment where reply_id=#{replyId}
+    </select>
+
+    <select id="selectCommentByReplyIdForUser" resultMap="CommentMap">
+        SELECT
+            t_comment.id AS comment_id,
+            t_comment.reply_id,
+            t_comment.to_username,
+            t_comment.user_id,
+            t_comment.comment_time,
+            t_comment.`comment`,
+            t_comment.to_user_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num,
+            t_user.collect_num
+        FROM
+            t_comment
+                INNER JOIN t_user ON t_user.id = t_comment.user_id
+        where t_comment.reply_id=#{replyId}
+        limit #{start},#{size}
+    </select>
+
+    <select id="selectAllCommentCount" resultType="Integer">
+        select count(*) from t_comment
+    </select>
+
+    <select id="selectAllComment" resultMap="CommentMap">
+        SELECT
+            t_comment.id AS comment_id,
+            t_comment.reply_id,
+            t_comment.to_username,
+            t_comment.user_id,
+            t_comment.comment_time,
+            t_comment.`comment`,
+            t_comment.to_user_id,
+            t_user.id AS user_id,
+            t_user.username,
+            t_user.`password`,
+            t_user.register_time,
+            t_user.introduce,
+            t_user.image,
+            t_user.post_num,
+            t_user.reply_num,
+            t_user.collect_num
+        FROM
+            t_comment
+                INNER JOIN t_user ON t_user.id = t_comment.user_id
+        limit #{start},#{size}
     </select>
 </mapper>

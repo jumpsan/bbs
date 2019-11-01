@@ -1,6 +1,7 @@
 package com.example.bbs.service.impl;
 
 import com.example.bbs.dao.*;
+import com.example.bbs.entity.Comment;
 import com.example.bbs.entity.Post;
 import com.example.bbs.entity.Reply;
 import com.example.bbs.entity.User;
@@ -146,5 +147,27 @@ public class ReplyServiceImpl implements ReplyService {
     @Override
     public Integer selectAllReplyCountByUserId(Integer id) {
         return replyDao.selectAllReplyCountByUserId(id);
+    }
+
+    /**
+     * 所有回复的数量
+     *
+     * @return
+     */
+    @Override
+    public Integer selectAllReplyCount() {
+        return replyDao.selectAllReplyCount();
+    }
+
+    /**
+     * 所有回复
+     *
+     * @param start
+     * @param size
+     * @return
+     */
+    @Override
+    public List<Reply> selectAllReply(Integer start, Integer size) {
+        return replyDao.selectAllReply(start,size);
     }
 }

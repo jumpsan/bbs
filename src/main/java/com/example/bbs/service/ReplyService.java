@@ -1,5 +1,6 @@
 package com.example.bbs.service;
 
+import com.example.bbs.entity.Comment;
 import com.example.bbs.entity.Reply;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,4 +31,18 @@ public interface ReplyService {
     Integer selectAllReplyCountByPostId(Integer id);
 
     Integer selectAllReplyCountByUserId(Integer id);
+
+    /**
+     * 所有回复的数量
+     * @return
+     */
+    Integer selectAllReplyCount();
+
+    /**
+     * 所有回复
+     * @param start
+     * @param size
+     * @return
+     */
+    List<Reply> selectAllReply(Integer start, Integer size);
 }

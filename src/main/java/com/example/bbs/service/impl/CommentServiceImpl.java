@@ -159,4 +159,48 @@ public class CommentServiceImpl implements CommentService {
     public Integer selectCommentCountByUserId(Integer userId){
         return commentDao.selectCommentCountByUserId(userId);
     }
+
+    /**
+     * 根据回复编号查找楼中楼数量
+     *
+     * @param replyId
+     * @return
+     */
+    @Override
+    public Integer selectCommentCountByReplyId(Integer replyId) {
+        return commentDao.selectCommentCountByReplyId(replyId);
+    }
+
+    /**
+     * 根据回复编号茶盅楼中楼
+     *
+     * @param replyId
+     * @return
+     */
+    @Override
+    public List<Comment> selectCommentByReplyId(Integer replyId,Integer start,Integer size) {
+        return commentDao.selectCommentByReplyIdForUser(replyId,start,size);
+    }
+
+    /**
+     * 数量
+     *
+     * @return
+     */
+    @Override
+    public Integer selectAllCommentCount() {
+        return commentDao.selectAllCommentCount();
+    }
+
+    /**
+     * 楼中楼
+     *
+     * @param start
+     * @param size
+     * @return
+     */
+    @Override
+    public List<Comment> selectAllComment(Integer start, Integer size) {
+        return commentDao.selectAllComment(start,size);
+    }
 }
